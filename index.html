@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pokémon Bracket Generator</title>
+  <title>Pokémon Bracket Generator (Full Roster)</title>
   <style>
     :root{
       --bg:#0b0f1a; --panel:#121a2e; --text:#eaf0ff; --muted:#9fb2ff;
@@ -165,6 +165,8 @@
         <div class="row" style="margin-top:10px">
           <button id="undoBtn" class="btn secondary" disabled>Undo</button>
           <button id="skipBtn" class="btn secondary" disabled>Skip Pair</button>
+          <button id="bothBtn" class="btn secondary" disabled>Both Win</button>
+          <button id="reshuffleBtn" class="btn secondary" disabled>Reshuffle Remaining</button>
         </div>
       </section>
 
@@ -238,6 +240,8 @@
         historyBody: document.getElementById('historyBody'),
         undoBtn: document.getElementById('undoBtn'),
         skipBtn: document.getElementById('skipBtn'),
+        bothBtn: document.getElementById('bothBtn'),
+        reshuffleBtn: document.getElementById('reshuffleBtn'),
         typeDropdownBtn: document.getElementById('typeDropdownBtn'),
         typeDropdown: document.getElementById('typeDropdown'),
         applyFilterBtn: document.getElementById('applyFilterBtn'),
@@ -251,6 +255,42 @@
         exCostume: document.getElementById('exCostume'),
         exAltForms: document.getElementById('exAltForms')
       };
+      function remainingContestantCount() {
+        if (!Array.isArray(bracketPairs) || pairIndex >= bracketPairs.length) return 0;
+        let c = 0;
+        for (let i = pairIndex; i < bracketPairs.length; i++) {
+          const [a,b] = bracketPairs[i] || [];
+          if (a) c++;
+          if (b) c++;
+        }
+        return c;
+      }
+      function reshuffleRemaining() {
+        if (!Array.isArray(bracketPairs) || pairIndex >= bracketPairs.length) return;
+        // Collect all remaining contenders from unplayed matches (ignore null byes)
+        const remaining = [];
+        for (let i = pairIndex; i < bracketPairs.length; i++) {
+          const [a,b] = bracketPairs[i] || [];
+          if (a) remaining.push(a);
+          if (b) remaining.push(b);
+        }
+        if (remaining.length < 2) return; // nothing to do
+        // Fisher–Yates shuffle
+        for (let i = remaining.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+        }
+        // Rebuild the tail pairs and splice back, keeping the played head intact
+        const head = bracketPairs.slice(0, pairIndex);
+        const newTail = generateBracket(remaining);
+        bracketPairs = head.concat(newTail);
+        // Update the top of the stack so Undo restores the correct order
+        if (roundStack.length) {
+          roundStack[roundStack.length - 1].pairs = bracketPairs.slice();
+        }
+        // Re-render the (now reshuffled) current match
+        renderCurrentMatch();
+      }
       // Default exclusions ON (users can uncheck if desired)
       if (ui.exMegaPrimal) ui.exMegaPrimal.checked = true;
       if (ui.exGmax)       ui.exGmax.checked = true;
@@ -994,6 +1034,7 @@
             ui.right.innerHTML = '';
             ui.undoBtn.disabled = true;
             ui.skipBtn.disabled = true;
+            if (ui.reshuffleBtn) ui.reshuffleBtn.disabled = true;
             return;
           }
           if (pairIndex >= bracketPairs.length) {
@@ -1003,6 +1044,8 @@
               ui.right.innerHTML = '';
               ui.undoBtn.disabled = true;
               ui.skipBtn.disabled = true;
+              if (ui.bothBtn) ui.bothBtn.disabled = true;
+              if (ui.reshuffleBtn) ui.reshuffleBtn.disabled = true;
               setTimeout(advanceToNextRound,300);
               return;
           }
@@ -1013,6 +1056,8 @@
           // Enable/disable buttons for active round
           ui.undoBtn.disabled = false;
           ui.skipBtn.disabled = !b; // disable skip on bye
+          if (ui.bothBtn) ui.bothBtn.disabled = !b; // only enabled when two contenders exist
+          if (ui.reshuffleBtn) ui.reshuffleBtn.disabled = (remainingContestantCount() < 2);
           
           roundInfo.style.display = '';
           roundInfo.textContent =
@@ -1055,6 +1100,8 @@
             // Enable undo; skipping a bye doesn't make sense; ensure clicks only on left
             ui.undoBtn.disabled = false;
             ui.skipBtn.disabled = true;
+            if (ui.bothBtn) ui.bothBtn.disabled = true;
+            if (ui.reshuffleBtn) ui.reshuffleBtn.disabled = (remainingContestantCount() < 2);
             isTransitioning = false;
 
             // Make right panel ignore clicks; left is active
@@ -1116,14 +1163,16 @@
         renderCurrentMatch();
       }
       
-      function recordMatch(roundNum, a, b, winner) {
+      function recordMatch(roundNum, a, b, winners) {
           const matchIndex = bracketHistory.filter(m => m.round === roundNum).length + 1;
+          const winArr = Array.isArray(winners) ? winners : [winners];
+          const winnerNames = winArr.map(w => displayName(w));
           bracketHistory.push({
               round: roundNum,
               match: matchIndex,
               contenders: b ? [displayName(a), displayName(b)] : [displayName(a)],
-              winner: displayName(winner),
-              winnerObj: winner
+              winner: winnerNames.join(' & '),
+              winnerObjs: winArr
           });
           updateHistoryLog();
       }
@@ -1138,20 +1187,36 @@
         if (isBye) {
           // Only left clicks advance a bye
           if (side !== 'left') return;
-          recordMatch(currentRound, a, null, a);
+          recordMatch(currentRound, a, null, [a]);
           pairIndex++;
           renderCurrentMatch();
           return;
         }
 
         const winner = side === 'left' ? a : b;
-        recordMatch(currentRound, a, b, winner);
+        recordMatch(currentRound, a, b, [winner]);
+        pairIndex++;
+        renderCurrentMatch();
+      }
+
+      function bothWin() {
+        if (pairIndex >= bracketPairs.length) return;
+        const [a,b] = bracketPairs[pairIndex];
+        if (!b) return; // cannot both-win a bye
+        recordMatch(currentRound, a, b, [a,b]);
         pairIndex++;
         renderCurrentMatch();
       }
       
       function winnersForRound(roundNum) {
-          return bracketHistory.filter(m => m.round === roundNum).map(m => m.winnerObj ?? { name: m.winner });
+          const outs = [];
+          for (const m of bracketHistory) {
+            if (m.round !== roundNum) continue;
+            if (Array.isArray(m.winnerObjs)) outs.push(...m.winnerObjs);
+            else if (m.winnerObj) outs.push(m.winnerObj);
+            else if (m.winner) outs.push({ name: m.winner });
+          }
+          return outs;
       }
       
       function showChampion(winner) {
@@ -1202,6 +1267,8 @@
             // Disable action buttons at end
             ui.undoBtn.disabled = true;
             ui.skipBtn.disabled = true;
+            if (ui.bothBtn) ui.bothBtn.disabled = true;
+            if (ui.reshuffleBtn) ui.reshuffleBtn.disabled = true;
             return;
           }
           currentRound += 1;
@@ -1270,6 +1337,8 @@
       ui.right.addEventListener('click', () => pickWinner('right'));
       ui.undoBtn.addEventListener('click', undoLast);
       ui.skipBtn.addEventListener('click', skipCurrentPair);
+      if (ui.bothBtn) ui.bothBtn.addEventListener('click', bothWin);
+      if (ui.reshuffleBtn) ui.reshuffleBtn.addEventListener('click', reshuffleRemaining);
 
       // --- Type dropdown open/close logic ---
       ui.typeDropdownBtn.addEventListener('click', (e) => {
@@ -1318,7 +1387,7 @@
     const active = document.activeElement;
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
     // Keyboard controls:
-    // 1: pick left, 2: pick right, U/u: undo, S/s: skip
+    // 1: pick left, 2: pick right, U/u: undo, S/s: skip, B/b: both win, R/r: reshuffle
     if (event.key === '1') {
       pickWinner('left');
     } else if (event.key === '2') {
@@ -1327,6 +1396,10 @@
       undoLast();
     } else if (event.key === 's' || event.key === 'S') {
       skipCurrentPair();
+    } else if (event.key === 'b' || event.key === 'B') {
+      bothWin();
+    } else if (event.key === 'r' || event.key === 'R') {
+      reshuffleRemaining();
     }
   });
 </script>
