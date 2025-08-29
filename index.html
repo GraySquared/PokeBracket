@@ -796,9 +796,9 @@
               }
             }
 
-            // --- Types check ---
+            // --- Types check (metadata-only; no network) ---
             if (needTypes) {
-              const types = await resolveTypes(e);
+              const types = (e.meta && Array.isArray(e.meta.types)) ? e.meta.types : [];
               for (const t of selectedTypes) { if (!types.includes(t)) return false; }
             }
             return true;
