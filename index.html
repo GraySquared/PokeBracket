@@ -1,1407 +1,694 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pokémon Bracket Generator (Full Roster)</title>
-  <style>
-    :root{
-      --bg:#0b0f1a; --panel:#121a2e; --text:#eaf0ff; --muted:#9fb2ff;
-      --accent:#87a7ff; --accent2:#94f7c3; --line:rgba(255,255,255,.12);
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0b0f1a,#0e1530);color:var(--text);
-         font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    .wrap{max-width:1100px;margin:24px auto;padding:16px}
-    h1{margin:0 0 6px;font-size:28px;font-weight:800}
-    .sub{color:var(--muted);margin:0 0 18px}
-    .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
-          border:1px solid var(--line); border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.25)}
-    .grid{display:grid; gap:16px; grid-template-columns: 1.2fr .8fr}
-    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    .btn{background:var(--accent); color:#08132a; border:none; font-weight:800; padding:12px 14px;
-         border-radius:12px; cursor:pointer; transition:.15s transform ease}
-    .btn:hover{ transform: translateY(-1px)}
-    .btn.secondary{ background:transparent; color:var(--text); border:1px solid var(--line)}
-    .pill{font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted)}
-    .sep{height:1px; background:var(--line); margin:12px 0}
-    input[type=number], input[type=text]{background:#0b1430; color:var(--text); border:1px solid var(--line);
-      border-radius:10px; padding:8px 10px; min-width:70px}
-    label{font-size:14px}
-    .stat{font-size:13px; color:var(--muted)}
-    .choice{border:1px solid var(--line); border-radius:14px; padding:22px; cursor:pointer;
-            display:flex; align-items:center; justify-content:center; flex-direction: column; gap: 8px; text-align: center;
-            background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
-            font-size:22px; font-weight:900; letter-spacing:.3px; text-transform:capitalize}
-    .sprite{ display:block; }
-    .choice:hover{border-color:rgba(255,255,255,.22); transform: translateY(-1px)}
-    .match{display:grid; grid-template-columns:1fr 70px 1fr; align-items:stretch; gap:10px}
-    .vs{display:flex; align-items:center; justify-content:center; color:var(--muted); font-weight:800}
-    .small{font-size:12px; color:var(--muted)}
-    table{width:100%; border-collapse:separate; border-spacing:0 8px}
-    th,td{padding:8px 10px; font-size:14px}
-    th{color:var(--muted); text-align:left}
-    tr{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015))}
-    tr td:first-child, tr th:first-child{border-top-left-radius:10px; border-bottom-left-radius:10px}
-    tr td:last-child, tr th:last-child{border-top-right-radius:10px; border-bottom-right-radius:10px}
-    .rank{color:#a8b9ff; font-weight:800}
-    .wrap-scroll{max-height:380px; overflow:auto; padding-right:6px}
-    .kbd{font-size:11px; color:#06122b; background:#cfe1ff; padding:2px 6px; border-radius:6px; font-weight:800}
-    .multiselect{ position:relative; display:inline-block }
-    .multiselect .dropdown label{ font-size:13px; color:var(--text) }
-    .multiselect .dropdown input{ margin-right:6px }
-    .multiselect .dropdown{ max-height:280px; overflow:auto; min-width:260px }
-    .multiselect .dropdown .row{ display:grid; grid-template-columns: repeat(3, minmax(110px,1fr)); gap:8px }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>Pokémon Bracket Generator</h1>
-    <p class="sub">Build a full single-elimination bracket for all current Pokémon species. The tool fetches the live species list from PokéAPI, has filters and shuffle, and lets you pick winners round-by-round.</p>
-
-    <div class="grid">
-      <section class="card">
-        <h2 style="margin:0 0 10px">1) Fetch List & Configure</h2>
-        <div class="row" style="margin-bottom:8px">
-          <button id="fetchBtn" class="btn">Fetch from PokéAPI</button>
-          <span id="fetchStat" class="stat">Not fetched yet</span>
-        </div>
-
-        <div class="sep"></div>
-        <h3 class="small" style="margin:0 0 6px">Filters</h3>
-        <div class="row" style="margin-bottom:8px; align-items:flex-end">
-          <div>
-            <label>Generation</label><br>
-            <div class="multiselect">
-              <button id="genDropdownBtn" type="button" class="btn secondary" style="padding:8px 10px">All</button>
-              <div id="genDropdown" class="dropdown" style="display:none; position:absolute; z-index:10; background:#0b1430; border:1px solid var(--line); border-radius:10px; padding:10px; box-shadow:0 10px 30px rgba(0,0,0,.35)">
-                <div class="row" style="gap:14px; flex-wrap:wrap; max-width:320px">
-                  <label><input type="checkbox" name="genCheck" value="1"> Gen 1</label>
-                  <label><input type="checkbox" name="genCheck" value="2"> Gen 2</label>
-                  <label><input type="checkbox" name="genCheck" value="3"> Gen 3</label>
-                  <label><input type="checkbox" name="genCheck" value="4"> Gen 4</label>
-                  <label><input type="checkbox" name="genCheck" value="5"> Gen 5</label>
-                  <label><input type="checkbox" name="genCheck" value="6"> Gen 6</label>
-                  <label><input type="checkbox" name="genCheck" value="7"> Gen 7</label>
-                  <label><input type="checkbox" name="genCheck" value="8"> Gen 8</label>
-                  <label><input type="checkbox" name="genCheck" value="9"> Gen 9</label>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            <meta http-equiv="Content-Style-Type" content="text/css">
+                <title></title>
+                <meta name="Generator" content="Cocoa HTML Writer">
+                    <meta name="CocoaVersion" content="2575.7">
+                        <style type="text/css">
+                            :root{
+                                --bg:#0b0f1a; --bg2:#0d1430; --panel:#111827; --panel2:#0f172a; --text:#eaf0ff; --muted:#a7b0c3; --line:rgba(255,255,255,.12);
+                                --accent:#8bb5ff; --accent2:#94f7c3; --warn:#f59e0b; --ok:#22c55e; --danger:#ef4444;
+                            }
+                            html,body{height:100%}
+                            body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+                            
+                            .wrap{max-width:1100px;margin:24px auto;padding:16px}
+                            .section-title{margin:8px 0 6px;font-weight:800;letter-spacing:.2px}
+                            
+                            .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+                            
+                            #filters.card{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+                            
+                            .label{font-weight:600}
+                            .muted{color:var(--muted)}
+                            
+                            .btn{appearance:none;border:none;background:var(--accent);color:#051127;font-weight:800;padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .15s ease, box-shadow .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.28)}
+                            .btn:hover{transform:translateY(-1px)}
+                            .btn:disabled{opacity:.6;cursor:not-allowed;filter:grayscale(.2)}
+                            .btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+                            
+                            .controls-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+                            
+                            #match.card{display:grid;grid-template-columns:1fr 80px 1fr;gap:14px;align-items:center;margin-top:14px}
+                            .choice-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));display:flex;flex-direction:column;align-items:center;gap:6px;min-height:170px}
+                            .choice-card img{width:128px;height:128px;object-fit:contain;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35))}
+                            
+                            .vs{display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:800}
+                            .vs::before{content:"VS";display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+                            
+                            .panel{margin-top:16px}
+                            
+                            #historyList{border:1px solid var(--line);border-radius:12px;padding:10px;max-height:320px;overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
+                            #historyPanel.card h3,#championPanel.card h3{margin:8px 0 8px}
+                            .history-row{display:grid;grid-template-columns:1fr minmax(50px,80px) 1fr auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+                            .history-row .winner{color:var(--ok);font-weight:800;text-align:right}
+                            
+                            #pairInfo{margin-left:8px;color:var(--muted)}
+                            
+                            select, input[type="checkbox"]{accent-color:var(--accent)}
+                            select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+                            
+                            .badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+                            
+                            @media (max-width:800px){
+                                .wrap{padding:12px}
+                                #match.card{grid-template-columns:1fr 56px 1fr}
+                                .choice-card{min-height:150px}
+                            }
+                        </style>
+                    </head>
+    <body>
+        <div id="ui" class="wrap">
+            <div id="filters" class="card" style="margin-top:10px">
+                <h3 class="section-title">Filters</h3>
+                <div id="exRow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                    <span style="font-weight:600">Exclude:</span>
+                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="exMega" checked> Mega</label>
+                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="exGmax" checked> Gmax</label>
+                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="exCostume" checked> Costumes</label>
+                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="exAltForms" checked> Alt forms</label>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label>Type(s)</label><br>
-            <div class="multiselect">
-              <button id="typeDropdownBtn" type="button" class="btn secondary" style="padding:8px 10px">Select types</button>
-              <div id="typeDropdown" class="dropdown" style="display:none; position:absolute; z-index:10; background:#0b1430; border:1px solid var(--line); border-radius:10px; padding:10px; box-shadow:0 10px 30px rgba(0,0,0,.35)">
-                <div class="row" style="gap:14px; flex-wrap:wrap; max-width:320px">
-                  <label><input type="checkbox" value="normal"> Normal</label>
-                  <label><input type="checkbox" value="fire"> Fire</label>
-                  <label><input type="checkbox" value="water"> Water</label>
-                  <label><input type="checkbox" value="electric"> Electric</label>
-                  <label><input type="checkbox" value="grass"> Grass</label>
-                  <label><input type="checkbox" value="ice"> Ice</label>
-                  <label><input type="checkbox" value="fighting"> Fighting</label>
-                  <label><input type="checkbox" value="poison"> Poison</label>
-                  <label><input type="checkbox" value="ground"> Ground</label>
-                  <label><input type="checkbox" value="flying"> Flying</label>
-                  <label><input type="checkbox" value="psychic"> Psychic</label>
-                  <label><input type="checkbox" value="bug"> Bug</label>
-                  <label><input type="checkbox" value="rock"> Rock</label>
-                  <label><input type="checkbox" value="ghost"> Ghost</label>
-                  <label><input type="checkbox" value="dragon"> Dragon</label>
-                  <label><input type="checkbox" value="dark"> Dark</label>
-                  <label><input type="checkbox" value="steel"> Steel</label>
-                  <label><input type="checkbox" value="fairy"> Fairy</label>
+                <div id="genRow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                    <label for="genSelect" style="font-weight:600">Generation:</label>
+                    <select id="genSelect">
+                        <option value="">All</option>
+                        <option value="generation-i">Gen 1</option>
+                        <option value="generation-ii">Gen 2</option>
+                        <option value="generation-iii">Gen 3</option>
+                        <option value="generation-iv">Gen 4</option>
+                        <option value="generation-v">Gen 5</option>
+                        <option value="generation-vi">Gen 6</option>
+                        <option value="generation-vii">Gen 7</option>
+                        <option value="generation-viii">Gen 8</option>
+                        <option value="generation-ix">Gen 9</option>
+                    </select>
+                    <label for="regionSelect" style="font-weight:600">Region:</label>
+                    <select id="regionSelect">
+                        <option value="">All</option>
+                    </select>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label>Exclusions</label><br>
-            <div class="multiselect">
-              <button id="exDropdownBtn" type="button" class="btn secondary" style="padding:8px 10px">None</button>
-              <div id="exDropdown" class="dropdown" style="display:none; position:absolute; z-index:10; background:#0b1430; border:1px solid var(--line); border-radius:10px; padding:10px; box-shadow:0 10px 30px rgba(0,0,0,.35)">
-                <div class="row" style="gap:14px; flex-wrap:wrap; max-width:360px">
-                  <label><input id="exMegaPrimal" type="checkbox" value="megaPrimal"> Megas & Primal</label>
-                  <label><input id="exGmax" type="checkbox" value="gmax"> Gmax</label>
-                  <label><input id="exCostume" type="checkbox" value="costume"> Costumes</label>
-                  <label><input id="exAltForms" type="checkbox" value="altForms"> Alternate forms (keeps only defaults)</label>
+                <div id="typeRow" style="display:flex;gap:10px;align-items:center;position:relative">
+                    <label for="typeDropdownBtn" style="font-weight:600">Types:</label>
+                    <button id="typeDropdownBtn" class="btn secondary" type="button" style="padding:6px 10px">Select Types</button>
+                    <div id="typeDropdown" style="display:none;position:absolute;top:100%;left:0;margin-top:6px;z-index:20;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.35)">
+                        <div id="typeBox" style="display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:6px;max-width:320px">
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="normal"> Normal</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="fire"> Fire</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="water"> Water</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="electric"> Electric</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="grass"> Grass</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="ice"> Ice</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="fighting"> Fighting</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="poison"> Poison</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="ground"> Ground</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="flying"> Flying</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="psychic"> Psychic</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="bug"> Bug</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="rock"> Rock</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="ghost"> Ghost</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="dragon"> Dragon</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="dark"> Dark</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="steel"> Steel</label>
+                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="fairy"> Fairy</label>
+                        </div>
+                    </div>
+                    <div style="margin-top:8px">
+                        <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="typesModeAll">Strict Typing</label>
+                    </div>
                 </div>
-              </div>
+                
+                <div id="specialRow" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+                    <span style="font-weight:600">Special:</span>
+                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyLegendary"> Legendary</label>
+                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyMythical"> Mythical</label>
+                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyMega"> Mega</label>
+                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyGmax"> Gmax</label>
+                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyStarters"> Starters</label>
+                    <label id="starterStageWrap" style="display:none;align-items:center;gap:6px">
+                        Stage:
+                        <select id="starterStage" disabled>
+                            <option value="all">All</option>
+                            <option value="1">1st</option>
+                            <option value="2">2nd</option>
+                            <option value="3">3rd</option>
+                        </select>
+                    </label>
+                </div>
+                
+                <div style="display:flex;flex-direction:column;gap:6px;margin-left:0">
+                    <span id="filterCount" style="color:#666"></span>
+                </div>
             </div>
-          </div>
-
-          <button id="applyFilterBtn" class="btn">Apply Filters</button>
-          <span id="filterStat" class="stat"></span>
+            
+            <div class="controls-row">
+                <button id="startBtn" class="btn">Start Bracket</button>
+                <button id="undoBtn" class="btn secondary" disabled>Undo</button>
+                <button id="shuffleBtn" class="btn secondary" disabled>Shuffle Remaining</button>
+                <span id="pairInfo" class="muted"></span>
+            </div>
+            
+            <div id="match" class="card">
+                <div id="leftName"  class="choice-card"></div>
+                <div class="vs"></div>
+                <div id="rightName" class="choice-card"></div>
+            </div>
+            <div id="historyPanel" class="card panel">
+                <h3 class="section-title">Match History</h3>
+                <div id="historyList"></div>
+            </div>
+            <div id="championPanel" class="card panel" style="display:none">
+                <h3 class="section-title">Champion</h3>
+                <div id="championCard" class="choice-card" style="display:inline-block"></div>
+            </div>
         </div>
-
-        <div class="row" style="margin-bottom:8px">
-          <button id="shuffleBtn" class="btn">Shuffle List</button>
-          <span id="shuffleStat" class="stat"></span>
-          </label>
-        </div>
-
-        <div class="row">
-          <button id="buildBtn" class="btn">Build Bracket</button>
-          <span id="buildStat" class="stat"></span>
-        </div>
-
-        <div class="sep"></div>
-
-        <h2 style="margin:0 0 10px">2) Play Matches</h2>
-        <div class="row small" style="margin-bottom:6px">
-          <span>Use keyboard: <span class="kbd">1</span>/<span class="kbd">2</span> to pick, <span class="kbd">U</span> to undo, <span class="kbd">S</span> to skip</span>
-        </div>
-        <div id="roundInfo" class="stat" style="margin-bottom:8px; display:none"></div>
-        <div id="matchArea" class="match">
-          <div id="left" class="choice"></div>
-          <div class="vs">VS</div>
-          <div id="right" class="choice"></div>
-        </div>
-
-        <div class="row" style="margin-top:10px">
-          <button id="undoBtn" class="btn secondary" disabled>Undo</button>
-          <button id="skipBtn" class="btn secondary" disabled>Skip Pair</button>
-          <button id="bothBtn" class="btn secondary" disabled>Both Win</button>
-          <button id="reshuffleBtn" class="btn secondary" disabled>Reshuffle Remaining</button>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2 style="margin:0 0 10px">Live Status</h2>
-        <div class="sep"></div>
-        <h3 class="small" style="margin:0 0 6px">Match Log</h3>
-        <div class="wrap-scroll">
-            <table>
-              <thead>
-                <tr><th>Round</th><th>Match</th><th>Contenders</th><th>Winner</th></tr>
-              </thead>
-              <tbody id="historyBody"></tbody>
-            </table>
-        </div>
-        <div class="sep"></div>
-        <div id="finalArea" style="display:none">
-          <h3 style="margin:0 0 6px">Champion</h3>
-          <div id="champion" class="choice" style="cursor:default"></div>
-        </div>
-      </section>
-    </div>
-  </div>
-
-  <script>
-      // allPokemon: Array of entries. Each entry.meta (populated after enrich) includes:
-      //   speciesId, speciesName, speciesVarieties, isDefaultMon, formIsDefault,
-      //   isMega/Gmax/Primal/Costume, isRegional/regionTag, generationNum, types
-      let allPokemon = [];
-      // Helper to safely get a resource name from NamedAPIResource or URL
-      function nameOfResource(x){
-        if (!x) return '';
-        if (typeof x === 'string') return String(x).split('/').filter(Boolean).pop() || '';
-        if (x.name) return x.name;
-        if (x.url) return String(x.url).split('/').filter(Boolean).pop() || '';
-        return '';
-      }
-
-      let bracketPairs = [];
-      let pairIndex = 0;
-      let bracketHistory = [];
-      let currentRound = 0;
-      let roundStack = [];
-      let isTransitioning = false;
-      let workingPool = []; // filtered subset to build from
-      const detailCache = new Map();      // name -> /pokemon detail JSON
-      const speciesCache = new Map();     // speciesId -> /pokemon-species JSON
-      const formCache = new Map();        // variety name -> /pokemon-form JSON
-      const versionGroupCache = new Map();// vg name -> /version-group JSON
-
-      // --- Lightweight localStorage cache for meta enrichment ---
-      const META_CACHE_KEY = 'pb_meta_cache_v1';
-      function loadMetaCache(){
-        try { return JSON.parse(localStorage.getItem(META_CACHE_KEY) || '{}'); } catch { return {}; }
-      }
-      function saveMetaCache(cache){
-        try { localStorage.setItem(META_CACHE_KEY, JSON.stringify(cache)); } catch {}
-      }
-      let metaCache = loadMetaCache(); // keyed by entry.name (variety)
-      
-      
-      const ui = {
-        fetchBtn: document.getElementById('fetchBtn'),
-        fetchStat: document.getElementById('fetchStat'),
-        shuffleBtn: document.getElementById('shuffleBtn'),
-        shuffleStat: document.getElementById('shuffleStat'),
-        buildBtn: document.getElementById('buildBtn'),
-        buildStat: document.getElementById('buildStat'),
-        left: document.getElementById('left'),
-        right: document.getElementById('right'),
-        historyBody: document.getElementById('historyBody'),
-        undoBtn: document.getElementById('undoBtn'),
-        skipBtn: document.getElementById('skipBtn'),
-        bothBtn: document.getElementById('bothBtn'),
-        reshuffleBtn: document.getElementById('reshuffleBtn'),
-        typeDropdownBtn: document.getElementById('typeDropdownBtn'),
-        typeDropdown: document.getElementById('typeDropdown'),
-        applyFilterBtn: document.getElementById('applyFilterBtn'),
-        filterStat: document.getElementById('filterStat'),
-        genDropdownBtn: document.getElementById('genDropdownBtn'),
-        genDropdown: document.getElementById('genDropdown'),
-        exDropdownBtn: document.getElementById('exDropdownBtn'),
-        exDropdown: document.getElementById('exDropdown'),
-        exMegaPrimal: document.getElementById('exMegaPrimal'),
-        exGmax: document.getElementById('exGmax'),
-        exCostume: document.getElementById('exCostume'),
-        exAltForms: document.getElementById('exAltForms')
-      };
-      function remainingContestantCount() {
-        if (!Array.isArray(bracketPairs) || pairIndex >= bracketPairs.length) return 0;
-        let c = 0;
-        for (let i = pairIndex; i < bracketPairs.length; i++) {
-          const [a,b] = bracketPairs[i] || [];
-          if (a) c++;
-          if (b) c++;
-        }
-        return c;
-      }
-      function reshuffleRemaining() {
-        if (!Array.isArray(bracketPairs) || pairIndex >= bracketPairs.length) return;
-        // Collect all remaining contenders from unplayed matches (ignore null byes)
-        const remaining = [];
-        for (let i = pairIndex; i < bracketPairs.length; i++) {
-          const [a,b] = bracketPairs[i] || [];
-          if (a) remaining.push(a);
-          if (b) remaining.push(b);
-        }
-        if (remaining.length < 2) return; // nothing to do
-        // Fisher–Yates shuffle
-        for (let i = remaining.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
-        }
-        // Rebuild the tail pairs and splice back, keeping the played head intact
-        const head = bracketPairs.slice(0, pairIndex);
-        const newTail = generateBracket(remaining);
-        bracketPairs = head.concat(newTail);
-        // Update the top of the stack so Undo restores the correct order
-        if (roundStack.length) {
-          roundStack[roundStack.length - 1].pairs = bracketPairs.slice();
-        }
-        // Re-render the (now reshuffled) current match
-        renderCurrentMatch();
-      }
-      // Default exclusions ON (users can uncheck if desired)
-      if (ui.exMegaPrimal) ui.exMegaPrimal.checked = true;
-      if (ui.exGmax)       ui.exGmax.checked = true;
-      if (ui.exCostume)    ui.exCostume.checked = true;
-      if (ui.exAltForms)   ui.exAltForms.checked = true;
-      // Reflect in the dropdown button label
-      if (ui.exDropdownBtn) ui.exDropdownBtn.textContent = 'Alt forms, Megas/Primal, Gmax, Costumes';
-      // --- Gen and Exclusion dropdown helpers ---
-      function getSelectedGens() {
-        return Array.from(document.querySelectorAll('input[name="genCheck"]:checked')).map(el => Number(el.value));
-      }
-      function getExclusions() {
-        return {
-          altForms:   ui.exAltForms?.checked   || false,
-          megaPrimal: ui.exMegaPrimal?.checked || false,
-          gmax:       ui.exGmax?.checked       || false,
-          costume:    ui.exCostume?.checked    || false,
-        };
-      }
-      // Helper to detect form flags (mega/gmax/primal/costume) using pokemon-form metadata
-      async function getFormFlags(entry) {
-        const id = idFromPokemonUrl(entry.url);
-        // Fast path if meta exists
-        if (entry.meta) {
-          return {
-            isForm: !!entry.meta.isForm,
-            isMega: !!entry.meta.isMega,
-            isGmax: !!entry.meta.isGmax,
-            isPrimal: !!entry.meta.isPrimal,
-            isCostume: !!entry.meta.isCostume,
-          };
-        }
-        // Default flags
-        const flags = { isForm: id >= 10000, isMega: false, isGmax: false, isPrimal: false, isCostume: false };
-        if (!flags.isForm) return flags;
-        // costume heuristic by name (covers Pikachu hats & cosplays)
-        const n = (entry.name || '').toLowerCase();
-        if (n.startsWith('pikachu-')) {
-          const cosplaySet = ['rock-star','belle','pop-star','phd','libre'];
-          if (cosplaySet.some(t => n.includes(t)) || n.includes('cap') || n.includes('cosplay')) {
-            flags.isCostume = true;
-          }
-        }
-        const form = await getFormMetaByName(entry.name);
-        const formName = (form && (form.form_name || form.name)) || entry.name || '';
-        flags.isMega = !!(form && form.is_mega);
-        flags.isGmax = /gmax|gigantamax/i.test(formName);
-        flags.isPrimal = /primal/i.test(formName);
-        return flags;
-      }
-
-      function isRegionalForm(entry) {
-        if (entry.meta && typeof entry.meta.isRegional === 'boolean') return entry.meta.isRegional;
-        const n = (entry?.name || '').toLowerCase();
-        // treat tokens like -alola, -galar, -hisui, -paldea as regional
-        return /(?:^|[-])(alola|galar|hisui|paldea)(?:$|[-])/.test(n);
-      }
-
-      // --- Regional form helpers ---
-      function extractRegionTag(name) {
-        const m = String(name || '').toLowerCase().match(/(?:^|[-])(alola|galar|hisui|paldea)(?:$|[-])/);
-        return m ? m[1] : null;
-      }
-
-      function regionalBaseName(entry, detail) {
-        const base = detail?.species?.name || entry?.name || '';
-        const tag = extractRegionTag(entry?.name);
-        return tag ? `${base}-${tag}` : base;
-      }
-
-      // ---- Meta enrichment ----
-      function parseRegionTagByName(name) {
-        const m = String(name || '').toLowerCase().match(/(?:^|[-])(alola|galar|hisui|paldea)(?:$|[-])/);
-        return m ? m[1] : null;
-      }
-
-      function setEntryMeta(entry, meta) {
-        entry.meta = Object.assign(entry.meta || {}, meta);
-        return entry.meta;
-      }
-
-      async function enrichEntry(entry) {
-        // Fast path: if meta already attached or cached, use it
-        if (entry.meta && entry.meta.speciesId) return entry.meta;
-        const cached = metaCache[entry.name];
-        if (cached && cached.speciesId) { entry.meta = cached; return cached; }
-        try {
-          const id = idFromPokemonUrl(entry.url);
-          const isForm = id >= 10000;
-          const detail = await getPokemonDetail(entry);
-          if (!detail) {
-            const meta = setEntryMeta(entry, { id, isForm });
-            metaCache[entry.name] = meta;
-            return meta;
-          }
-
-          // --- Expanded meta fields ---
-          const speciesUrl = detail?.species?.url || '';
-          const speciesId = Number(String(speciesUrl).split('/').filter(Boolean).pop());
-          const speciesName = detail?.species?.name || '';
-          const isDefaultMon = !!detail?.is_default; // default variety for this specific pokemon
-
-          // forms array from /pokemon (NamedAPIResource list)
-          const formsList = Array.isArray(detail.forms) ? detail.forms.map(f => nameOfResource(f)) : [];
-
-          // Types
-          const types = (detail.types || []).map(t => t.type.name);
-
-          // Region tag (from variety name)
-          const regionTag = parseRegionTagByName(entry.name);
-          const isRegional = !!regionTag;
-
-          // Form metadata (for special categories + intro generation if needed)
-          let isMega = false, isGmax = false, isPrimal = false, isCostume = false, genNum = null, formIsDefault = null, formVersionGroup = '';
-          if (isForm) {
-            const form = await getFormMetaByName(entry.name);
-            if (form) {
-              formIsDefault = typeof form.is_default === 'boolean' ? form.is_default : null;
-              formVersionGroup = form?.version_group?.name || '';
-              const formName = (form.form_name || form.name || '').toLowerCase();
-              isMega = !!form.is_mega;
-              isGmax = /gmax|gigantamax/.test(formName);
-              isPrimal = /primal/.test(formName);
-              // costumes (mostly Pikachu caps/cosplays)
-              if ((entry.name || '').toLowerCase().startsWith('pikachu-')) {
-                const cosplaySet = ['rock-star','belle','pop-star','phd','libre'];
-                if (cosplaySet.some(t => formName.includes(t)) || formName.includes('cap') || formName.includes('cosplay')) {
-                  isCostume = true;
-                }
-              }
-            }
-          }
-
-          // Generation: prefer form version group for forms
-          if (isForm && formVersionGroup) {
-            const vg = await getVersionGroup(formVersionGroup);
-            genNum = genNameToNum(vg?.generation?.name || '') || genNum;
-          }
-          if (!genNum) {
-            const sp = speciesUrl ? await getSpecies(speciesUrl) : null;
-            const gname = sp?.generation?.name || '';
-            genNum = genNameToNum(gname) || null;
-          }
-
-          // Species varieties (from /pokemon-species): allows cheap alt-form collapse by species
-          let speciesVarieties = [];
-          {
-            const sp = speciesUrl ? await getSpecies(speciesUrl) : null;
-            if (sp && Array.isArray(sp.varieties)) {
-              speciesVarieties = sp.varieties.map(v => ({
-                name: v?.pokemon?.name || '',
-                is_default: !!v?.is_default,
-              }));
-            }
-          }
-
-          const meta = setEntryMeta(entry, {
-            id, isForm,
-            speciesId, speciesName, speciesUrl,
-            isDefaultMon,
-            formsList,
-            formIsDefault,
-            formVersionGroup,
-            regionTag, isRegional,
-            isMega, isGmax, isPrimal, isCostume,
-            generationNum: genNum,
-            types,
-            speciesVarieties,
-          });
-          metaCache[entry.name] = meta;
-          return meta;
-        } catch {
-          const meta = setEntryMeta(entry, { id: idFromPokemonUrl(entry.url) });
-          metaCache[entry.name] = meta;
-          return meta;
-        }
-      }
-
-      async function enrichEntries(entries, concurrency = 36) {
-        let next = 0, done = 0;
-        async function worker() {
-          while (true) {
-            const i = next++;
-            if (i >= entries.length) return;
-            await enrichEntry(entries[i]);
-            done++;
-            if (done % 25 === 0 || done === entries.length) {
-              ui.fetchStat.textContent = `${ui.fetchStat.textContent.replace(/\s*\|.*$/, '')} | Enriched ${done}/${entries.length}`;
-            }
-            await new Promise(r => setTimeout(r, 0));
-          }
-        }
-        await Promise.all(Array.from({ length: concurrency }, worker));
-        saveMetaCache(metaCache);
-      }
-
-      // Produce a nicer display name when Alt Forms exclusion is active.
-      // Only affects entries that are forms (id >= 10000) and are NOT regional/mega/gmax/primal/costume.
-      function prettyName(entry, ex) {
-        // Only honor overrides when Alt Forms collapse is active
-        if (ex && ex.altForms && entry && entry._displayNameOverride) return entry._displayNameOverride;
-        return (entry?.name || '').trim() || '(unknown)';
-      }
-
-      function displayName(entry) {
-        if (!entry) return '(unknown)';
-        if (typeof entry === 'string') return entry;
-        // read current exclusions live from UI
-        const ex = typeof getExclusions === 'function' ? getExclusions() : { altForms: false };
-        return prettyName(entry, ex);
-      }
-      
-      function idFromPokemonUrl(durl) {
-          return Number(String(durl).split('/').filter(Boolean).pop());
-      }
-      
-      function artworkUrlFromId(id) {
-          return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-      }
-
-      // --- Filtering helpers ---
-      async function getPokemonDetail(entry) {
-        const key = (entry && entry.name) || '';
-        if (detailCache.has(key)) return detailCache.get(key);
-        const data = await fetch(entry.url).then(r => r.ok ? r.json() : null);
-        detailCache.set(key, data);
-        return data;
-      }
-
-      async function getSpecies(speciesUrl) {
-        const id = Number(String(speciesUrl).split('/').filter(Boolean).pop());
-        if (speciesCache.has(id)) return speciesCache.get(id);
-        const data = await fetch(speciesUrl).then(r => r.ok ? r.json() : null);
-        speciesCache.set(id, data);
-        return data;
-      }
-
-      async function getFormMetaByName(varietyName) {
-        if (formCache.has(varietyName)) return formCache.get(varietyName);
-        const data = await fetch(`https://pokeapi.co/api/v2/pokemon-form/${varietyName}`).then(r => r.ok ? r.json() : null);
-        formCache.set(varietyName, data);
-        return data;
-      }
-
-      async function getVersionGroup(name) {
-        if (versionGroupCache.has(name)) return versionGroupCache.get(name);
-        const data = await fetch(`https://pokeapi.co/api/v2/version-group/${name}`).then(r => r.ok ? r.json() : null);
-        versionGroupCache.set(name, data);
-        return data;
-      }
-
-      // Resolve generation for an entry:
-      //  - For regular species (id < 10000): use species.generation.name
-      //  - For alt forms (id >= 10000): use pokemon-form.version_group.generation
-      async function resolveGeneration(entry) {
-        if (entry.meta && entry.meta.generationNum) {
-          const mapBack = {1:'generation-i',2:'generation-ii',3:'generation-iii',4:'generation-iv',5:'generation-v',6:'generation-vi',7:'generation-vii',8:'generation-viii',9:'generation-ix'};
-          return mapBack[entry.meta.generationNum] || '';
-        }
-        const id = idFromPokemonUrl(entry.url);
-        // first get /pokemon detail to locate species url
-        const detail = await getPokemonDetail(entry);
-        if (!detail) return '';
-        const speciesUrl = detail?.species?.url;
-        if (!speciesUrl) return '';
-        if (id < 10000) {
-          const sp = await getSpecies(speciesUrl);
-          return sp?.generation?.name || '';
-        }
-        // form case
-        const form = await getFormMetaByName(entry.name);
-        if (!form) {
-          const sp = await getSpecies(speciesUrl);
-          return sp?.generation?.name || '';
-        }
-        const vg = await getVersionGroup(form?.version_group?.name);
-        return vg?.generation?.name || '';
-      }
-
-      async function resolveTypes(entry) {
-        if (entry.meta && Array.isArray(entry.meta.types)) return entry.meta.types.slice();
-        const detail = await getPokemonDetail(entry);
-        if (!detail) return [];
-        return (detail.types || []).map(t => t.type.name);
-      }
-
-      function probeImage(url, timeoutMs = 7000) {
-        return new Promise(resolve => {
-          const img = new Image();
-          const timer = setTimeout(() => {
-            cleanup(); resolve(false);
-          }, timeoutMs);
-
-          function cleanup() {
-            clearTimeout(timer);
-            img.onload = null;
-            img.onerror = null;
-          }
-
-          img.onload = () => { cleanup(); resolve(true); };
-          img.onerror = () => { cleanup(); resolve(false); };
-          img.src = url;
-        });
-      }
-      // Helper to get selected types from the dropdown
-      function getSelectedTypes() {
-        const box = ui.typeDropdown;
-        if (!box) return [];
-        return Array.from(box.querySelectorAll('input[type="checkbox"]:checked')).map(x => x.value);
-      }
-
-      // Fast generation ranges for filtering
-      const genRanges = { 1:[1,151], 2:[152,251], 3:[252,386], 4:[387,493], 5:[494,649], 6:[650,721], 7:[722,809], 8:[810,905], 9:[906,1025] };
-
-      function genNameToNum(gname) {
-        const map = {
-          'generation-i': 1,
-          'generation-ii': 2,
-          'generation-iii': 3,
-          'generation-iv': 4,
-          'generation-v': 5,
-          'generation-vi': 6,
-          'generation-vii': 7,
-          'generation-viii': 8,
-          'generation-ix': 9,
-        };
-        return map[gname] || null;
-      }
-
-      async function applyFilters() {
-        if (!allPokemon.length) { ui.filterStat.textContent = 'Fetch first'; return; }
-        const genSel = getSelectedGens();
-        const selectedTypes = getSelectedTypes();
-        const ex = getExclusions();
-
-        const needGen = genSel.length > 0;
-        const needTypes = selectedTypes.length > 0;
-        if (genSel.length === 0 && selectedTypes.length === 0 && !ex.altForms && !ex.megaPrimal && !ex.gmax && !ex.costume) {
-          workingPool = allPokemon.slice();
-          ui.filterStat.textContent = `Filtered: ${workingPool.length} / ${allPokemon.length}`;
-          return;
-        }
-
-        ui.filterStat.textContent = 'Filtering…';
-        try {
-          let next = 0, done = 0;
-          const concurrency = 24;
-
-          async function testEntry(e) {
-            const id = idFromPokemonUrl(e.url);
-            const meta = e.meta || null;
-            let flags = null; // cache for form flags so we don't fetch twice
-            // ALT FORMS handling — data‑driven collapse to API defaults
-            // Rule: keep ONLY a single default variety per species (or per regional), drop alternates.
-            // We use: pokemon-form.is_default (for forms), pokemon.is_default (for species),
-            // and as a final fallback, species.varieties[is_default].
-            if (ex.altForms) {
-              const m = e.meta || {};
-              const isSpecial = !!(m.isMega || m.isGmax || m.isPrimal || m.isCostume);
-              if (!isSpecial) {
-                if (m.isForm === true) {
-                  // FORM ENTRIES (id >= 10000 or flagged in meta)
-                  if (m.formIsDefault === false) return false; // non‑default form — drop
-                  if (m.formIsDefault === true) {
-                    // default form — keep, label nicely
-                    e._displayNameOverride = m.isRegional
-                      ? regionalBaseName(e, { species: { name: m.speciesName } })
-                      : (m.speciesName || e.name);
-                  } else {
-                    // Unknown form default; prefer pokemon default, else species.varieties default
-                    if (m.isDefaultMon === false) return false;
-                    if (m.isDefaultMon === true) {
-                      e._displayNameOverride = m.speciesName || e.name;
-                    } else if (!m.isRegional && Array.isArray(m.speciesVarieties) && m.speciesVarieties.length) {
-                      const def = m.speciesVarieties.find(v => v.is_default);
-                      if (def && def.name && def.name !== e.name) return false; // keep only the default variety name
-                      e._displayNameOverride = m.speciesName || e.name;
-                    } else {
-                      // Regional with unknown flags: be permissive and keep (default sub‑form is typically flagged on forms)
-                      e._displayNameOverride = m.isRegional
-                        ? regionalBaseName(e, { species: { name: m.speciesName } })
-                        : (m.speciesName || e.name);
-                    }
-                  }
-                } else {
-                  // NON‑FORM ENTRIES (id < 10000)
-                  if (m.isDefaultMon === false) return false; // not species default — drop
-                  if (m.isDefaultMon === true) {
-                    e._displayNameOverride = m.isRegional
-                      ? regionalBaseName(e, { species: { name: m.speciesName } })
-                      : (m.speciesName || e.name);
-                  } else if (Array.isArray(m.speciesVarieties) && m.speciesVarieties.length) {
-                    // Fallback to species default variety name
-                    const def = m.speciesVarieties.find(v => v.is_default);
-                    if (def && def.name && def.name !== e.name) return false; // keep only default variety (fixes Minior cores)
-                    e._displayNameOverride = m.isRegional
-                      ? regionalBaseName(e, { species: { name: m.speciesName } })
-                      : (m.speciesName || e.name);
-                  } else {
-                    // No info — keep as last resort (rare)
-                    e._displayNameOverride = m.speciesName || e.name;
-                  }
-                }
-              }
-            }
-            // 2.2 Independent exclusions (apply regardless of altForms)
-            if ((meta && meta.isForm) || id >= 10000) {
-              if (meta) {
-                if (ex.megaPrimal && (meta.isMega || meta.isPrimal)) return false;
-                if (ex.gmax && meta.isGmax) return false;
-                if (ex.costume && meta.isCostume) return false;
-              } else {
-                if (!flags) { flags = await getFormFlags(e); }
-                const { isMega, isGmax, isPrimal, isCostume } = flags;
-                if (ex.megaPrimal && (isMega || isPrimal)) return false;
-                if (ex.gmax && isGmax) return false;
-                if (ex.costume && isCostume) return false;
-              }
-            }
-
-            // --- Generation check ---
-            if (needGen) {
-              if (meta) {
-                if (!meta.isForm) {
-                  // Regular species: fast range check by National Dex id
-                  const anyInRange = genSel.some(g => {
-                    const [lo, hi] = genRanges[g];
-                    return id >= lo && id <= hi;
-                  });
-                  if (!anyInRange) return false;
-                } else {
-                  // Form entry
-                  if (meta.isMega || meta.isGmax || meta.isPrimal || meta.isCostume) {
-                    // Special forms inherit base species generation via speciesId range
-                    const spId = meta.speciesId || id; // fallback to id just in case
-                    const ok = genSel.some(g => {
-                      const [lo, hi] = genRanges[g];
-                      return spId >= lo && spId <= hi;
-                    });
-                    if (!ok) return false;
-                  } else {
-                    // Regional/other forms: rely on resolved generation number
-                    const gnum = meta.generationNum || null;
-                    if (gnum) {
-                      if (!genSel.includes(gnum)) return false;
-                    } else {
-                      // Fallback to old path if meta missing
-                      const form = await getFormMetaByName(e.name);
-                      const vgName = form?.version_group?.name || '';
-                      if (!vgName) {
-                        const detail = await getPokemonDetail(e);
-                        const spId = Number(String(detail?.species?.url || '').split('/').filter(Boolean).pop());
-                        const ok = genSel.some(g => {
-                          const [lo, hi] = genRanges[g];
-                          return spId >= lo && spId <= hi;
-                        });
-                        if (!ok) return false;
-                      } else {
-                        const vg = await getVersionGroup(vgName);
-                        const gnum2 = genNameToNum(vg?.generation?.name || '');
-                        if (!genSel.includes(gnum2)) return false;
-                      }
-                    }
-                  }
-                }
-              } else {
-                // No meta: fallback to previous logic
-                if (id < 10000) {
-                  const anyInRange = genSel.some(g => {
-                    const [lo, hi] = genRanges[g];
-                    return id >= lo && id <= hi;
-                  });
-                  if (!anyInRange) return false;
-                } else {
-                  if (!flags) { flags = await getFormFlags(e); }
-                  const { isMega, isGmax, isPrimal, isCostume } = flags;
-                  if (isMega || isGmax || isPrimal || isCostume) {
-                    const detail = await getPokemonDetail(e);
-                    const spId = Number(String(detail?.species?.url || '').split('/').filter(Boolean).pop());
-                    const ok = genSel.some(g => {
-                      const [lo, hi] = genRanges[g];
-                      return spId >= lo && spId <= hi;
-                    });
-                    if (!ok) return false;
-                  } else {
-                    const form = await getFormMetaByName(e.name);
-                    const vgName = form?.version_group?.name || '';
-                    if (!vgName) {
-                      const detail = await getPokemonDetail(e);
-                      const spId = Number(String(detail?.species?.url || '').split('/').filter(Boolean).pop());
-                      const ok = genSel.some(g => {
-                        const [lo, hi] = genRanges[g];
-                        return spId >= lo && spId <= hi;
-                      });
-                      if (!ok) return false;
-                    } else {
-                      const vg = await getVersionGroup(vgName);
-                      const gnum = genNameToNum(vg?.generation?.name || '');
-                      if (!genSel.includes(gnum)) return false;
-                    }
-                  }
-                }
-              }
-            }
-
-            // --- Types check (metadata-only; no network) ---
-            if (needTypes) {
-              const types = (e.meta && Array.isArray(e.meta.types)) ? e.meta.types : [];
-              for (const t of selectedTypes) { if (!types.includes(t)) return false; }
-            }
-            return true;
-          }
-
-          const results = new Array(allPokemon.length);
-          async function worker() {
-            while (true) {
-              const i = next++;
-              if (i >= allPokemon.length) return;
-              results[i] = await testEntry(allPokemon[i]);
-              done++;
-              if (done % 25 === 0 || done === allPokemon.length) ui.filterStat.textContent = `Filtering… ${done}/${allPokemon.length}`;
-              await new Promise(r => setTimeout(r, 0));
-            }
-          }
-          await Promise.all(Array.from({length: concurrency}, worker));
-
-          const out = [];
-          for (let i = 0; i < results.length; i++) if (results[i]) out.push(allPokemon[i]);
-          // When Alt Forms is ON, dedupe by species (+region) and prefer API default entries
-          if (ex.altForms) {
-            const buckets = new Map();
-            for (const e of out) {
-              const m = e.meta || {};
-              const speciesKey = m.speciesId || m.speciesName || e.name;
-              const key = m.isRegional ? `${speciesKey}:${m.regionTag || 'base'}` : String(speciesKey);
-              if (!buckets.has(key)) buckets.set(key, []);
-              buckets.get(key).push(e);
-            }
-            const deduped = [];
-            for (const [, arr] of buckets) {
-              const isSpecial = (m) => !!(m?.isMega || m?.isGmax || m?.isPrimal || m?.isCostume);
-
-              // 1) Prefer non‑special entries that are explicit defaults
-              let pick = arr.find(x => !isSpecial(x.meta) && (x?.meta?.formIsDefault === true || x?.meta?.isDefaultMon === true));
-
-              // 2) Otherwise prefer any non‑special entry (even if flags missing)
-              if (!pick) pick = arr.find(x => !isSpecial(x.meta));
-
-              // 3) Otherwise prefer any default (even if special) as a last resort
-              if (!pick) pick = arr.find(x => x?.meta?.formIsDefault === true || x?.meta?.isDefaultMon === true);
-
-              // 4) Fallback to first
-              if (!pick) pick = arr[0];
-
-              deduped.push(pick);
-            }
-            workingPool = deduped;
-          } else {
-            workingPool = out;
-          }
-
-          // If Alt Forms is OFF, ensure names show exact forms (no leftover overrides)
-          if (!ex.altForms && workingPool.length) {
-            for (const e of workingPool) { if (e && e._displayNameOverride) delete e._displayNameOverride; }
-          }
-
-          // If Alt Forms is active, ensure surviving default forms display as base species or species-region for regionals
-          if (ex.altForms && workingPool.length) {
-            ui.filterStat.textContent = `Filtered: ${workingPool.length} / ${allPokemon.length} — normalizing names… 0/${workingPool.length}`;
-            let doneNorm = 0;
-            for (let i = 0; i < workingPool.length; i++) {
-                const e = workingPool[i];
-                const m = e.meta || {};
-                if (!(m.isMega || m.isGmax || m.isPrimal || m.isCostume)) {
-                  const clean = m.isRegional
-                    ? regionalBaseName(e, { species: { name: m.speciesName } })
-                    : (m.speciesName || e.name);
-                  if (clean) e._displayNameOverride = clean;
-                }
-              doneNorm++;
-              if ((doneNorm & 31) === 0 || doneNorm === workingPool.length) {
-                ui.filterStat.textContent = `Filtered: ${workingPool.length} / ${allPokemon.length} — normalizing names… ${doneNorm}/${workingPool.length}`;
-                await new Promise(r => setTimeout(r, 0));
-              }
-            }
-          }
-
-          ui.filterStat.textContent = `Filtered: ${workingPool.length} / ${allPokemon.length}`;
-        } catch (err) {
-          console.error('Filter failed:', err);
-          ui.filterStat.textContent = 'Filter failed — using full list';
-          workingPool = allPokemon.slice();
-        }
-      }
-
-      // --- Artwork helpers ---
-      function preloadOfficialArtwork(entry) {
-        const id = idFromPokemonUrl(entry.url);
-        const url = artworkUrlFromId(id);
-        return probeImage(url).then(ok => ok ? url : null);
-      }
-
-      async function setSpriteInto(containerEl, entry, size = 128) {
-        if (!containerEl || !entry) return;
-        const name = entry.name || '(unknown)';
-        // Try official artwork off-DOM first to avoid 404s on the page
-        const official = await preloadOfficialArtwork(entry);
-        let src = official;
-        if (!src) {
-          try {
-            const detail = await getPokemonDetail(entry);
-            src = detail?.sprites?.other?.home?.front_default || detail?.sprites?.front_default || '';
-          } catch { /* ignore */ }
-        }
-        if (src) {
-          const img = document.createElement('img');
-          img.className = 'sprite';
-          img.alt = name;
-          img.width = size; img.height = size;
-          img.style.cssText = 'object-fit:contain;filter:drop-shadow(0 8px 20px rgba(0,0,0,.35))';
-          img.src = src;
-          containerEl.innerHTML = '';
-          containerEl.appendChild(img);
-        } else {
-          containerEl.innerHTML = '<div style="width:128px;height:128px;opacity:.6;display:flex;align-items:center;justify-content:center">🧩</div>';
-        }
-      }
-
-      // Fast pre-filter: drop Totem/Starter variants by name before artwork probing
-      function excludeTotemAndStarter(entries) {
-        const re = /-(totem|starter)\b/i;
-        return entries.filter(e => !re.test(e.name || ''));
-      }
-
-      // Drop forms that are known to lack official artwork/sprites in the public sprite repo
-      function excludeKnownBadSprites(entries) {
-        // Known problematic variants:
-        // - Mimikyu busted form(s)
-        // - Koraidon/Miraidon ride/build/mode forms (limited/sprinting/swimming/gliding, low-power/drive/aquatic/glide, etc.)
-        const patterns = [
-          /^(mimikyu|mimikkyu)-busted(?:-totem)?$/i,
-          /^(koraidon|miraidon)-.*(?:build|mode)$/i,
-        ];
-        return entries.filter(e => !patterns.some(re => re.test(e.name || '')));
-      }
-
-      async function fetchPokemon(){
-       ui.fetchStat.textContent = 'Fetching…';
-       ui.fetchBtn.disabled = true;
-       let url = "https://pokeapi.co/api/v2/pokemon";
-       const entries = [];
-       
-       while (url) {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-          const data = await res.json();
-          
-          for (const p of data.results) {
-            entries.push({name: p.name, url: p.url});
-          }
-          url = data.next;
-       }
-       ui.fetchStat.textContent = 'Fetched ' + entries.length;
-
-       // Remove Totem and Starter variants before artwork filtering
-       const noBosses = excludeTotemAndStarter(entries);
-       if (noBosses.length !== entries.length) {
-           ui.fetchStat.textContent = `Fetched ${entries.length} — removed ${entries.length - noBosses.length} totem/starter variants`;
-       }
-       // Also remove forms with known-missing artwork (keeps fetch fast without probing every image)
-       const noBroken = excludeKnownBadSprites(noBosses);
-       if (noBroken.length !== noBosses.length) {
-         const removedBroken = noBosses.length - noBroken.length;
-         ui.fetchStat.textContent = `Fetched ${entries.length} (removed ${entries.length - noBosses.length} totem/starter; ${removedBroken} no-artwork variants). Enriching…`;
-       } else {
-           ui.fetchStat.textContent = `Fetched ${entries.length} — removed ${entries.length - noBosses.length} totem/starter. Enriching…`;
-       }
-       allPokemon = noBroken;
-       await enrichEntries(allPokemon, 36);
-       // Reset any prior filtered pool; user should Apply Filters fresh
-       workingPool = []; ui.filterStat.textContent = '';
-       ui.fetchStat.textContent = `Ready: ${allPokemon.length} entries`;
-       ui.fetchBtn.disabled = false;
-      }
-      
-      function shuffleList() {
-        const arr = (workingPool.length ? workingPool : allPokemon);
-        if (!arr || arr.length === 0) {
-          ui.shuffleStat.textContent = 'Fetch Pokémon first!';
-          return;
-        }
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        // if we shuffled allPokemon and have no workingPool yet, leave as-is
-        // if we had a workingPool, keep it as the shuffled source
-        ui.shuffleStat.textContent = `Shuffle Complete (${arr.length})`;
-      }
-      
-      function generateBracket(list) {
-          const pairs = [];
-          for (let i=0; i<list.length; i+=2) {
-              const a = list[i];
-              const b = list[i+1] || null;
-              pairs.push([a,b]);
-          }
-          return pairs;
-      }
-      
-      function buildBracket(list) {
-          if (!list || list.length === 0) {
-              ui.buildStat.textContent = "Fetch Pokemon first!"
-              return;
-          }
-          // Clear any previous champion display when starting a new bracket
-          const finalArea = document.getElementById('finalArea');
-          const champBox  = document.getElementById('champion');
-          if (finalArea) finalArea.style.display = 'none';
-          if (champBox)  champBox.innerHTML = '';
-          const pairs = generateBracket(list);
-          bracketPairs = pairs;
-          bracketHistory = [];
-          updateHistoryLog();
-          currentRound = 1;
-          pairIndex = 0;
-          roundStack = [{ round: 1, pairs: bracketPairs.slice() }];
-          ui.undoBtn.disabled = false;
-          ui.skipBtn.disabled = false;
-          ui.buildStat.textContent = `Bracket built with ${pairs.length} matches in Round 1.`;
-          renderCurrentMatch();
-          return pairs;
-      }
-      
-      function renderCurrentMatch() {
-          const roundInfo = document.getElementById('roundInfo');
-          if (!Array.isArray(bracketPairs) || bracketPairs.length === 0) {
-            roundInfo.style.display = '';
-            roundInfo.textContent = 'No pairs to show. Build the bracket first.';
-            ui.left.innerHTML = '';
-            ui.right.innerHTML = '';
-            ui.undoBtn.disabled = true;
-            ui.skipBtn.disabled = true;
-            if (ui.reshuffleBtn) ui.reshuffleBtn.disabled = true;
-            return;
-          }
-          if (pairIndex >= bracketPairs.length) {
-              roundInfo.style.display = '';
-              roundInfo.textContent = `Round ${currentRound} complete — recorded ${bracketHistory.filter(m => m.round === currentRound).length} matches.`;
-              ui.left.innerHTML = '';
-              ui.right.innerHTML = '';
-              ui.undoBtn.disabled = true;
-              ui.skipBtn.disabled = true;
-              if (ui.bothBtn) ui.bothBtn.disabled = true;
-              if (ui.reshuffleBtn) ui.reshuffleBtn.disabled = true;
-              setTimeout(advanceToNextRound,300);
-              return;
-          }
-          const [a, b] = bracketPairs[pairIndex] || [null, null];
-          const leftName  = displayName(a);
-          const rightName = b ? displayName(b) : null;
-
-          // Enable/disable buttons for active round
-          ui.undoBtn.disabled = false;
-          ui.skipBtn.disabled = !b; // disable skip on bye
-          if (ui.bothBtn) ui.bothBtn.disabled = !b; // only enabled when two contenders exist
-          if (ui.reshuffleBtn) ui.reshuffleBtn.disabled = (remainingContestantCount() < 2);
-          
-          roundInfo.style.display = '';
-          roundInfo.textContent =
-            `Round ${currentRound} — Match ${pairIndex + 1} of ${bracketPairs.length}`;
-            // Ensure both sides are interactive for normal matches
-            ui.right.style.pointerEvents = 'auto';
-            ui.right.style.opacity = '';
-            ui.left.style.pointerEvents = 'auto';
-          // Render left/right with hourglass and containers; load sprites async
-          ui.left.innerHTML = `
-            <div id="leftImg" style="width:128px;height:128px;display:flex;align-items:center;justify-content:center;opacity:.8">⏳</div>
-            <div class="name">${leftName}</div>
-          `;
-          ui.right.innerHTML = rightName ? `
-            <div id="rightImg" style="width:128px;height:128px;display:flex;align-items:center;justify-content:center;opacity:.8">⏳</div>
-            <div class="name">${rightName}</div>
-          ` : ``;
-
-          // Kick off sprite loads (only if not a bye)
-          if (rightName) {
-            setSpriteInto(document.getElementById('leftImg'), a, 128);
-            setSpriteInto(document.getElementById('rightImg'), b, 128);
-          }
-
-          // auto-advance if bye
-          // Bye: show only the left contender; user must click left to advance
-          if (!rightName) {
-            roundInfo.textContent =
-              `Round ${currentRound} — Match ${pairIndex + 1} of ${bracketPairs.length} (bye — click to advance)`;
-
-            // Render left side and load sprite; keep right side empty and non-interactive
-            ui.left.innerHTML = `
-              <div id="leftImg" style="width:128px;height:128px;display:flex;align-items:center;justify-content:center;opacity:.8">⏳</div>
-              <div class="name">${leftName}</div>
-            `;
-            ui.right.innerHTML = '';
-
-            setSpriteInto(document.getElementById('leftImg'), a, 128);
-
-            // Enable undo; skipping a bye doesn't make sense; ensure clicks only on left
-            ui.undoBtn.disabled = false;
-            ui.skipBtn.disabled = true;
-            if (ui.bothBtn) ui.bothBtn.disabled = true;
-            if (ui.reshuffleBtn) ui.reshuffleBtn.disabled = (remainingContestantCount() < 2);
-            isTransitioning = false;
-
-            // Make right panel ignore clicks; left is active
-            ui.right.style.pointerEvents = 'none';
-            ui.right.style.opacity = '0';   // optional; remove this line if you prefer visible empty slot
-            ui.left.style.pointerEvents = 'auto';
-            return;
-          }
-      }
-      // Undo the last decision (in current round or step back a round)
-      function undoLast() {
-          // 1) If there is at least one recorded match in the current round, remove it and step back
-        for (let i = bracketHistory.length - 1; i >= 0; i--) {
-            if (bracketHistory[i].round === currentRound) {
-              bracketHistory.splice(i, 1);
-              if (pairIndex > 0) pairIndex--; // move back to the prior pair
-              updateHistoryLog();
-              renderCurrentMatch();
-              return;
-            }
-        }
-        // 2) No entries in this round yet -> we likely just advanced. Step back a round if possible.
-        if (roundStack.length > 1) {
-          // Pop the empty/new round off the stack
-          roundStack.pop();
-          const top = roundStack[roundStack.length - 1];
-          currentRound = top.round;
-          bracketPairs = top.pairs.slice();
-          // Remove the last recorded match from that previous round (if any)
-          let lastIdx = -1;
-          for (let i = bracketHistory.length - 1; i >= 0; i--) {
-              if (bracketHistory[i].round === currentRound) { lastIdx = i; break; }
-          }
-          if (lastIdx !== -1) bracketHistory.splice(lastIdx, 1);
-
-          // Set pairIndex to the number of matches still recorded in this round (next to play)
-          let doneInRound = 0;
-          for (const m of bracketHistory) if (m.round === currentRound) doneInRound++;
-          pairIndex = Math.max(0, doneInRound);
-
-          updateHistoryLog();
-          renderCurrentMatch();
-        }
-      }
-
-      // Skip the current pair (move it to end of this round, unless it's a bye)
-      function skipCurrentPair() {
-        if (pairIndex >= bracketPairs.length) return;
-        const pair = bracketPairs[pairIndex];
-        const [a, b] = pair || [null, null];
-        // If it's a bye, just let the normal flow auto-advance
-        if (!b) { return; }
-        // Move current pair to the end of the queue for this round
-        bracketPairs.splice(pairIndex, 1);
-        bracketPairs.push(pair);
-        // Update the top of the stack so Undo restores the correct order:
-        if (roundStack.length) { roundStack[roundStack.length - 1].pairs = bracketPairs.slice(); }
-        // Do not change pairIndex; now a new pair occupies this index
-        renderCurrentMatch();
-      }
-      
-      function recordMatch(roundNum, a, b, winners) {
-          const matchIndex = bracketHistory.filter(m => m.round === roundNum).length + 1;
-          const winArr = Array.isArray(winners) ? winners : [winners];
-          const winnerNames = winArr.map(w => displayName(w));
-          bracketHistory.push({
-              round: roundNum,
-              match: matchIndex,
-              contenders: b ? [displayName(a), displayName(b)] : [displayName(a)],
-              winner: winnerNames.join(' & '),
-              winnerObjs: winArr
-          });
-          updateHistoryLog();
-      }
-      
-      function pickWinner(side) {
-        if (isTransitioning) return;
-        if (pairIndex >= bracketPairs.length) return;
-
-        const [a, b] = bracketPairs[pairIndex];
-        const isBye = !b;
-
-        if (isBye) {
-          // Only left clicks advance a bye
-          if (side !== 'left') return;
-          recordMatch(currentRound, a, null, [a]);
-          pairIndex++;
-          renderCurrentMatch();
-          return;
-        }
-
-        const winner = side === 'left' ? a : b;
-        recordMatch(currentRound, a, b, [winner]);
-        pairIndex++;
-        renderCurrentMatch();
-      }
-
-      function bothWin() {
-        if (pairIndex >= bracketPairs.length) return;
-        const [a,b] = bracketPairs[pairIndex];
-        if (!b) return; // cannot both-win a bye
-        recordMatch(currentRound, a, b, [a,b]);
-        pairIndex++;
-        renderCurrentMatch();
-      }
-      
-      function winnersForRound(roundNum) {
-          const outs = [];
-          for (const m of bracketHistory) {
-            if (m.round !== roundNum) continue;
-            if (Array.isArray(m.winnerObjs)) outs.push(...m.winnerObjs);
-            else if (m.winnerObj) outs.push(m.winnerObj);
-            else if (m.winner) outs.push({ name: m.winner });
-          }
-          return outs;
-      }
-      
-      function showChampion(winner) {
-        const roundInfo = document.getElementById('roundInfo');
-        const finalArea = document.getElementById('finalArea');
-        const champBox  = document.getElementById('champion');
-
-        const obj  = (winner && typeof winner === 'object') ? winner : { name: winner };
-        const name = displayName(obj) || '(none)';
-
-        // Build sprite URL if we have a detail URL; otherwise show a trophy placeholder
-        let imgHtml = `<div style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;opacity:.6">🏆</div>`;
-        if (obj && obj.url) {
-          const id  = idFromPokemonUrl(obj.url);
-          const src = artworkUrlFromId(id);
-          imgHtml = `<img class="sprite"
-                          src="${src}"
-                          alt="${name}"
-                          data-detail="${obj.url}"
-                          onerror="fallbackSprite(this)"
-                          style="width:220px;height:220px;object-fit:contain;filter:drop-shadow(0 12px 24px rgba(0,0,0,.45))">`;
-        }
-
-        // Update round info and show the champion card
-        roundInfo.style.display = '';
-        roundInfo.textContent = `Champion: ${name}`;
-
-        finalArea.style.display = '';
-        champBox.innerHTML = `
-          ${imgHtml}
-          <div class="name" style="font-size:24px;font-weight:900;margin-top:6px;text-transform:capitalize">${name}</div>
-        `;
-
-        // Disable action buttons at end
-        ui.undoBtn.disabled = true;
-        ui.skipBtn.disabled = true;
+    </body>
+    <script>
+        //load JSON
+        let pokemonData = []
+        let pokedexes = {};
         
-        // Clear the active match slots
-        ui.left.innerHTML = '';
-        ui.right.innerHTML = '';
-      }
-      
-      function advanceToNextRound() {
-          const winners = winnersForRound(currentRound);
-          if (winners.length <= 1) {
-            ui.buildStat.textContent = 'Tournament complete!';
-            showChampion(winners[0] || '(none)');
-            // Disable action buttons at end
-            ui.undoBtn.disabled = true;
-            ui.skipBtn.disabled = true;
-            if (ui.bothBtn) ui.bothBtn.disabled = true;
-            if (ui.reshuffleBtn) ui.reshuffleBtn.disabled = true;
-            return;
-          }
-          currentRound += 1;
-          bracketPairs = generateBracket(winners);
-          pairIndex = 0;
-          roundStack.push({ round: currentRound, pairs: bracketPairs.slice() });
-          ui.buildStat.textContent =     `Round ${currentRound - 1} complete. Starting Round ${currentRound} with ${bracketPairs.length} matches.`;
-          renderCurrentMatch();
-      }
-      
-      function updateHistoryLog() {
-          const tbody = ui.historyBody;
-          if (!tbody) return;
-          tbody.innerHTML = '';
-          
-          for (const m of bracketHistory) {
-              const vs = m.contenders.length === 2? `${m.contenders[0]} vs ${m.contenders[1]}` : `${m.contenders[0]} (bye)`;
-              const tr = document.createElement('tr');
-              tr.innerHTML = `<td>R${m.round}</td>
-                              <td>${m.match}</td>
-                              <td>${vs}</td>
-                              <td class="rank">${m.winner}</td>`;
-              tbody.appendChild(tr);
-          }
-          
-          const scroller = tbody.closest('.wrap-scroll');
-          if (scroller) scroller.scrollTop = scroller.scrollHeight;
-      }
-      
-      async function fallbackSprite(imgEl) {
-        const detailUrl = imgEl?.dataset?.detail;
-        if (!detailUrl) { imgEl.style.opacity = 0.4; return; }
-
-        try {
-          const res = await fetch(detailUrl);
-          if (!res.ok) throw new Error('sprite detail fetch failed');
-          const data = await res.json();
-
-          const alt =
-            data?.sprites?.other?.home?.front_default ||
-            data?.sprites?.front_default || "";
-
-          if (alt) {
-            imgEl.onerror = null;         // prevent loops
-            imgEl.src = alt;              // swap to working sprite
-          } else {
-            imgEl.replaceWith(placeholderNode());
-          }
-        } catch {
-          imgEl.replaceWith(placeholderNode());
+        let regionIndex = new Map();        // region -> Set(name)
+        
+        function buildDexIndexes() {
+            regionIndex = new Map();
+            const values = Object.values(pokedexes || {});
+            for (const dex of values) {
+                if (!dex || !Array.isArray(dex.entries)) continue;
+                const region = (dex.region || '').toLowerCase();
+                for (const ent of dex.entries) {
+                    const name = (ent.species_name || (Array.isArray(ent) ? ent[2] : '') || '').toLowerCase();
+                    if (!name) continue;
+                    if (region) {
+                        if (!regionIndex.has(region)) regionIndex.set(region, new Set());
+                        regionIndex.get(region).add(name);
+                    }
+                }
+            }
         }
-
-        function placeholderNode() {
-          const div = document.createElement('div');
-          div.style.cssText = "width:128px;height:128px;opacity:.6;display:flex;align-items:center;justify-content:center";
-          div.textContent = "🧩";
-          return div;
+        
+        async function loadData() {
+            const pokeRes = await fetch('pokemon.json');
+            let rawPokemon = await pokeRes.json();
+            pokemonData = rawPokemon.filter(p => (p.variety_tag || '').toLowerCase() !== 'exclude');
+            
+            const dexRes = await fetch('pokedexes.json');
+            pokedexes = await dexRes.json();
+            
+            console.log("Loaded", pokemonData.length, "pokemon entries");
+            console.log("Available pokedexes:", Object.keys(pokedexes));
+            buildDexIndexes();
+            populateRegionVersionUI();
+            updateFilterCount();
         }
-      }
-      
-      ui.fetchBtn.addEventListener('click', fetchPokemon);
-      ui.shuffleBtn.addEventListener('click', () => shuffleList());
-      ui.applyFilterBtn.addEventListener('click', () => { applyFilters(); });
-      ui.buildBtn.addEventListener('click', () => buildBracket(workingPool.length ? workingPool : allPokemon));
-      ui.left.addEventListener('click', () => pickWinner('left'));
-      ui.right.addEventListener('click', () => pickWinner('right'));
-      ui.undoBtn.addEventListener('click', undoLast);
-      ui.skipBtn.addEventListener('click', skipCurrentPair);
-      if (ui.bothBtn) ui.bothBtn.addEventListener('click', bothWin);
-      if (ui.reshuffleBtn) ui.reshuffleBtn.addEventListener('click', reshuffleRemaining);
-
-      // --- Type dropdown open/close logic ---
-      ui.typeDropdownBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        ui.typeDropdown.style.display = (ui.typeDropdown.style.display === 'none' || !ui.typeDropdown.style.display) ? 'block' : 'none';
-      });
-      document.addEventListener('click', (e) => {
-        if (!ui.typeDropdown.contains(e.target) && e.target !== ui.typeDropdownBtn) {
-          ui.typeDropdown.style.display = 'none';
+        
+        //variables
+        let workingList = [];
+        let pairs = [];
+        let pairIndex = 0;
+        let currentRound = 1;
+        let winnersThisRound = [];
+        let matchHistory = [];
+        let roundPairs = new Map();
+        let currentFilters = {
+            gen: '',
+            types: [],
+            typesRequireAll: false,
+            excludeMega: true,
+            excludeGmax: true,
+            excludeCostume: true,
+            excludeAltForms: true,
+            onlyLegendary: false,
+            onlyMythical: false,
+            onlyStarters: false,
+            starterStage: 'all',
+            onlyMega: false,
+            onlyGmax: false,
+            regions: []
+        };
+        
+        //display logic
+        function populateRegionVersionUI() {
+            const sel = document.getElementById('regionSelect');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">All</option>';
+            const regions = Array.from(new Set(
+                                               Object.values(pokedexes)
+                                               .map(d => (d.region || '').toLowerCase())
+                                               .filter(Boolean)
+                                               )).sort();
+                                               for (const r of regions) {
+                                                   const label = r.replace(/-/g,' ');
+                                                   const nice = label.charAt(0).toUpperCase() + label.slice(1);
+                                                   const opt = document.createElement('option');
+                                                   opt.value = r;
+                                                   opt.textContent = nice;
+                                                   sel.appendChild(opt);
+                                               }
         }
-      });
-      // Update button label with current selections
-      ui.typeDropdown.addEventListener('change', () => {
-        const sel = getSelectedTypes();
-        ui.typeDropdownBtn.textContent = sel.length ? `Types (${sel.length})` : 'Select types';
-      });
-  // --- Gen dropdown ---
-  ui.genDropdownBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    ui.genDropdown.style.display = (ui.genDropdown.style.display === 'none' || !ui.genDropdown.style.display) ? 'block' : 'none';
-  });
-  document.addEventListener('click', (e) => {
-    if (!ui.genDropdown.contains(e.target) && e.target !== ui.genDropdownBtn) {
-      ui.genDropdown.style.display = 'none';
-    }
-  });
-  ui.genDropdown.addEventListener('change', () => {
-    const gens = getSelectedGens();
-    ui.genDropdownBtn.textContent = gens.length ? `Gen ${gens.join(',')}` : 'All';
-  });
-
-  // --- Exclusions dropdown ---
-  ui.exDropdownBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    ui.exDropdown.style.display = (ui.exDropdown.style.display === 'none' || !ui.exDropdown.style.display) ? 'block' : 'none';
-  });
-  document.addEventListener('click', (e) => {
-    if (!ui.exDropdown.contains(e.target) && e.target !== ui.exDropdownBtn) {
-      ui.exDropdown.style.display = 'none';
-    }
-  });
-
-  // --- Keyboard shortcuts for match controls ---
-  document.addEventListener('keydown', function(event) {
-    // Only respond if no modal/dropdown is open and focus is not in an input
-    const active = document.activeElement;
-    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
-    // Keyboard controls:
-    // 1: pick left, 2: pick right, U/u: undo, S/s: skip, B/b: both win, R/r: reshuffle
-    if (event.key === '1') {
-      pickWinner('left');
-    } else if (event.key === '2') {
-      pickWinner('right');
-    } else if (event.key === 'u' || event.key === 'U') {
-      undoLast();
-    } else if (event.key === 's' || event.key === 'S') {
-      skipCurrentPair();
-    } else if (event.key === 'b' || event.key === 'B') {
-      bothWin();
-    } else if (event.key === 'r' || event.key === 'R') {
-      reshuffleRemaining();
-    }
-  });
-</script>
-</body>
+        
+        function labelOf(r) {
+            if (!r) return '(unknown)';
+            const v = r.variety || '';
+            const s = r.species || '';
+            const tag = (r.variety_tag || '').toLowerCase();
+            if (currentFilters && currentFilters.excludeAltForms && tag === 'form') {
+                const base = (s || v || '').replace(/-/g, ' ');
+                return base ? base.charAt(0).toUpperCase() + base.slice(1) : '(unknown)';
+            }
+            if (v && s && v !== s && v.startsWith(s + '-')) {
+                const suffix = v.slice(s.length + 1).replace(/-/g, ' ');
+                const sp = s.charAt(0).toUpperCase() + s.slice(1);
+                const sf = suffix.charAt(0).toUpperCase() + suffix.slice(1);
+                return `${sp} (${sf})`;
+            }
+            const base = (v || s || '').replace(/-/g, ' ');
+            return base ? base.charAt(0).toUpperCase() + base.slice(1) : '(unknown)';
+        }
+        
+        function displayName(raw) {
+            if (!raw) return '(unknown)';
+            // raw may already be pretty (string), or a raw variety/species string
+            const s = String(raw);
+            // If it already contains parentheses (e.g., "Rattata (Alola)"), keep as-is
+            if (/\(.*\)/.test(s)) return s;
+            // Otherwise lightly prettify hyphenated names
+            const parts = s.split('-');
+            return parts.map((p,i) => i === 0 ? (p.charAt(0).toUpperCase()+p.slice(1)) : p).join('-');
+        }
+        
+        function artworkUrlFor(r) {
+            if (!r || !r.variety_id) return null;
+            return `./official-artwork/${r.variety_id}.png`;
+        }
+        
+        function cardHTML(r) {
+            if (!r) return '';
+            const url = artworkUrlFor(r);
+            const name = labelOf(r);
+            const img = url ? `<img src="${url}" alt="${name}" style="width:128px;height:128px;object-fit:contain;display:block" onerror="this.style.display='none'">` : '';
+            return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+  ${img}
+  <div style="font-weight:700;text-transform:capitalize;text-align:center">${name}</div>
+</div>`;
+        }
+        
+        function renderPair() {
+            const leftEl = document.getElementById('leftName');
+            const rightEl = document.getElementById('rightName');
+            const infoEl = document.getElementById('pairInfo');
+            const undoBtn = document.getElementById('undoBtn');
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            undoBtn.disabled = matchHistory.length === 0;
+            shuffleBtn.disabled = pairIndex >= pairs.length;
+            
+            if (pairIndex >= pairs.length) {
+                leftEl.innerHTML = '';
+                rightEl.innerHTML = '';
+                infoEl.textContent = `Done — ${pairs.length} matches`;
+                return;
+            }
+            
+            const [a,b] = pairs[pairIndex];
+            leftEl.innerHTML = a ? cardHTML(a) : '';
+            rightEl.innerHTML = b ? cardHTML(b) : '';
+            
+            infoEl.textContent = `Round ${currentRound} — Match ${pairIndex + 1} of ${pairs.length}`;
+        }
+        
+        function renderHistory() {
+            const host = document.getElementById('historyList');
+            if (!host) return;
+            
+            if (!Array.isArray(matchHistory) || matchHistory.length === 0) {
+                host.innerHTML = '<div style="color:#777">No matches yet.</div>';
+                return;
+            }
+            
+            const byRound = new Map();
+            for (const m of matchHistory) {
+                if (!byRound.has(m.round)) byRound.set(m.round, []);
+                byRound.get(m.round).push(m);
+            }
+            
+            let html = '';
+            const rounds = Array.from(byRound.keys()).sort((a,b) => a - b);
+            for (const r of rounds) {
+                html += `<div style="margin:6px 0 4px;font-weight:700;color:#999">Round ${r}</div>`;
+                const rows = byRound.get(r);
+                for (let i = 0;i<rows.length;i++) {
+                    const m = rows[i];
+                    const a = displayName(m.a);
+                    const b = m.b ? displayName(m.b) : '(bye)';
+                    const w = displayName(m.winner);
+                    html += `<div class="history-row">
+            <div style="text-align:right">${a}</div>
+            <div class="vs" style="transform:scale(.8)"></div>
+            <div style="text-align:left">${b}</div>
+            <div class="winner">${w}</div>
+         </div>`;
+                }
+            }
+            host.innerHTML = html;
+        }
+        
+        // Champion panel helpers
+        function clearChampion() {
+            const panel = document.getElementById('championPanel');
+            const card  = document.getElementById('championCard');
+            if (panel) panel.style.display = 'none';
+            if (card) card.innerHTML = '';
+        }
+        function showChampion(entry) {
+            const panel = document.getElementById('championPanel');
+            const card  = document.getElementById('championCard');
+            if (!panel || !card) return;
+            card.innerHTML = cardHTML(entry);
+            panel.style.display = '';
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        //filter logic
+        function asBool(v) {
+            return v === true || v === 'TRUE' || v === 'true' || v === 1 || v === '1';
+        }
+        
+        function selectedRegions() {
+            const sel = document.getElementById('regionSelect');
+            if (!sel) return [];
+            const v = sel.value || '';
+            return v ? [v.toLowerCase()] : [];
+        }
+        
+        function applyFilters(all, f) {
+            let out = all;
+            if (f.gen) {
+                out = out.filter(p => p.form_intro_gen === f.gen);
+            }
+            if (Array.isArray(f.types) && f.types.length > 0) {
+                if (f.typesRequireAll) {
+                    if (f.types.length === 1) {
+                        const only = f.types[0];
+                        out = out.filter(p => Array.isArray(p.types) && p.types.length === 1 && p.types[0] === only);
+                    }
+                    else {
+                        out = out.filter(p => Array.isArray(p.types) && f.types.every(t => p.types.includes(t)));
+                    }
+                }
+                else {
+                    out = out.filter(p => Array.isArray(p.types) && f.types.some(t => p.types.includes(t)));
+                }
+            }
+            if (f.onlyLegendary || f.onlyMythical || f.onlyStarters || f.onlyMega || f.onlyGmax) {
+                out = out.filter(p => {
+                    const tag = (p.variety_tag || '').toLowerCase();
+                    const isMega = (tag === 'mega');
+                    const isGmax = (tag === 'gmax');
+                    let pass = false;
+                    if (f.onlyLegendary && asBool(p.is_legendary)) pass = true;
+                    if (f.onlyMythical && asBool(p.is_mythical)) pass = true;
+                    if (f.onlyMega && isMega) pass = true;
+                    if (f.onlyGmax && isGmax) pass = true;
+                    if (f.onlyStarters && asBool(p.is_starter)) {
+                        if (f.starterStage === 'all') pass = true;
+                        else {
+                            const ev = (p.starter_evo != null && p.starter_evo !=='') ? Number(p.starter_evo) : NaN;
+                            if (!Number.isNaN(ev) && String(ev) === String(f.starterStage)) pass = true;
+                        }
+                    }
+                    return pass;
+                });
+            }
+            // Region filter (union across selected regions)
+            if (Array.isArray(f.regions) && f.regions.length) {
+                const allowed = new Set();
+                for (const r of f.regions) {
+                    const set = regionIndex.get(String(r).toLowerCase());
+                    if (set) for (const n of set) allowed.add(n);
+                }
+                if (allowed.size) {
+                    out = out.filter(p => {
+                        const key = (p.variety || p.species || '').toLowerCase();
+                        return allowed.has(key);
+                    });
+                }
+            }
+            out = out.filter(p => {
+                const tag = (p.variety_tag || '').toLowerCase();
+                if (f.excludeMega && (tag === 'mega' || tag === 'primal')) return false;
+                if (f.excludeGmax && tag === 'gmax') return false;
+                if (f.excludeCostume && tag === 'costume') return false;
+                if (f.excludeAltForms && tag === 'form') return false; // keep regional forms
+                return true;
+            });
+            return out;
+        }
+        
+        function updateFilterCount() {
+            const el = document.getElementById('filterCount');
+            if (!el) return;
+            const sample = applyFilters(pokemonData, currentFilters);
+            el.textContent = `Matches: ${sample.length} / ${pokemonData.length}`;
+        }
+        
+        //bracket helper functions
+        function shuffle(arr) {
+            for (let i = arr.length -1; i>0; i--) {
+                const j = Math.floor(Math.random() * (i+1));
+                [arr[i],arr[j]] = [arr[j],arr[i]];
+            }
+            return arr;
+        }
+        
+        function buildPairs(list) {
+            const out = [];
+            for (let i=0; i<list.length; i += 2) {
+                const a = list[i];
+                const b = list[i + 1] ?? null;
+                out.push([a,b]);
+            }
+            return out;
+        }
+        
+        function recordMatch(round, a, b, winner) {
+            matchHistory.push({
+                round,
+                a: (typeof a === 'object' ? (a.variety || a.species || String(a)) : String(a)),
+                b: (b ? (typeof b === 'object' ? (b.variety || b.species || String(b)) : String(b)) : null),
+                winner: (typeof winner === 'object' ? (winner.variety || winner.species || String(winner)) : String(winner)), winner_obj: winner
+            });
+            renderHistory();
+        }
+        
+        //bracket core logic
+        function pickWinner(side) {
+            if (pairIndex >= pairs.length) return;
+            
+            const [a,b] = pairs[pairIndex];
+            let winner = a;
+            
+            if (b && side === 'right') {
+                winner = b;
+            }
+            
+            winnersThisRound.push(winner);
+            recordMatch(currentRound, a, b, winner);
+            pairIndex++;
+            
+            if (pairIndex >= pairs.length) {
+                if (winnersThisRound.length === 1) {
+                    const champ = winnersThisRound[0];
+                    const infoEl = document.getElementById('pairInfo');
+                    const champName = labelOf(champ);
+                    infoEl.textContent = `Tournament complete — ${champName} wins!`;
+                    document.getElementById('leftName').textContent = '';
+                    document.getElementById('rightName').textContent = '';
+                    showChampion(champ);
+                    return;
+                }
+                
+                const finishedRound = currentRound;
+                const nextEntrants = winnersThisRound.slice();
+                currentRound = finishedRound+1;
+                workingList = nextEntrants;
+                winnersThisRound = [];
+                pairs = buildPairs(workingList);
+                roundPairs.set(currentRound, pairs.slice());
+                pairIndex = 0;
+            }
+            renderPair();
+        }
+        
+        function undoLast() {
+            if (pairIndex > 0) {
+                pairIndex--;
+                matchHistory.pop();
+                if (winnersThisRound.length > 0) winnersThisRound.pop();
+                renderPair();
+                renderHistory();
+                return
+            }
+            
+            if (currentRound > 1) {
+                const prevRound = currentRound-1;
+                const prevPairs = roundPairs.get(prevRound) || [];
+                pairs = prevPairs.slice();
+                currentRound = prevRound;
+                
+                let lastIdx = -1;
+                for(let i = matchHistory.length-1;i>=0;i--) {
+                    if (matchHistory[i].round === prevRound) {lastIdx = i; break;}
+                }
+                if (lastIdx !== -1) {
+                    matchHistory.splice(lastIdx,1);
+                }
+                
+                winnersThisRound = matchHistory.filter(m => m.round === prevRound).map(m => m.winner_obj).filter(Boolean);
+                pairIndex = winnersThisRound.length;
+                renderPair();
+                renderHistory();
+                return;
+            }
+        }
+        
+        function shuffleRemaining() {
+            if (!Array.isArray(pairs) || pairs.length === 0) return;
+            if (pairIndex >= pairs.length) return;
+            
+            const remaining = [];
+            for (let i = pairIndex;i<pairs.length;i++) {
+                const [a,b] = pairs[i];
+                if (a) remaining.push(a);
+                if (b) remaining.push(b)
+            }
+            if (remaining.length <= 1) return;
+            shuffle(remaining);
+            const newRemainingPairs = buildPairs(remaining);
+            const kept = pairs.slice(0,pairIndex);
+            pairs = kept.concat(newRemainingPairs);
+            roundPairs.set(currentRound, pairs.slice());
+            renderPair();
+        }
+        
+        async function startBracket() {
+            currentRound = 1;
+            winnersThisRound = [];
+            matchHistory = [];
+            roundPairs = new Map();
+            clearChampion();
+            
+            const historyHost = document.getElementById('historyList');
+            
+            workingList = applyFilters(pokemonData, currentFilters);
+            
+            if (!workingList.length) {
+                document.getElementById('filterCount').textContent = "No Pokemon match the current filters.";
+                return;
+            }
+            shuffle(workingList);
+            
+            pairs = buildPairs(workingList);
+            roundPairs.set(currentRound, pairs.slice());
+            pairIndex = 0;
+            renderPair();
+        }
+        
+        // Condensed listeners for all filters
+        document.addEventListener('DOMContentLoaded', () => {
+            const $ = (id) => document.getElementById(id);
+            
+            // Cache controls
+            const filtersHost   = $('filters');
+            const genSelect     = $('genSelect');
+            const typeBox       = $('typeBox');
+            const typesModeAll  = $('typesModeAll');
+            
+            const exMega        = $('exMega');
+            const exGmax        = $('exGmax');
+            const exCostume     = $('exCostume');
+            const exAltForms    = $('exAltForms');
+            
+            const onlyMega      = $('onlyMega');
+            const onlyGmax      = $('onlyGmax');
+            const onlyLegendary = $('onlyLegendary');
+            const onlyMythical  = $('onlyMythical');
+            const onlyStarters  = $('onlyStarters');
+            const starterStage  = $('starterStage');
+            
+            // Helper to read selected types
+            const getSelectedTypes = () => Array.from(document.querySelectorAll('input[name="typeOpt"]:checked')).map(el => el.value);
+            
+            function syncOnlyExclude() {
+                // If "Only" is active, clear the corresponding Exclude
+                if (onlyMega && onlyMega.checked) { currentFilters.excludeMega = false; if (exMega) exMega.checked = false; }
+                if (onlyGmax && onlyGmax.checked) { currentFilters.excludeGmax = false; if (exGmax) exGmax.checked = false; }
+            }
+            
+            function readFiltersFromUI() {
+                currentFilters.gen              = genSelect ? (genSelect.value || '') : '';
+                currentFilters.types            = getSelectedTypes();
+                currentFilters.typesRequireAll  = !!(typesModeAll && typesModeAll.checked);
+                
+                currentFilters.excludeMega      = !!(exMega && exMega.checked);
+                currentFilters.excludeGmax      = !!(exGmax && exGmax.checked);
+                currentFilters.excludeCostume   = !!(exCostume && exCostume.checked);
+                currentFilters.excludeAltForms  = !!(exAltForms && exAltForms.checked);
+                
+                currentFilters.onlyMega         = !!(onlyMega && onlyMega.checked);
+                currentFilters.onlyGmax         = !!(onlyGmax && onlyGmax.checked);
+                currentFilters.onlyLegendary    = !!(onlyLegendary && onlyLegendary.checked);
+                currentFilters.onlyMythical     = !!(onlyMythical && onlyMythical.checked);
+                currentFilters.onlyStarters     = !!(onlyStarters && onlyStarters.checked);
+                currentFilters.starterStage     = starterStage ? (starterStage.value || 'all') : 'all';
+                
+                currentFilters.regions       = selectedRegions();
+                
+                // Show/hide the Stage selector when Starters is toggled
+                const stageWrap = document.getElementById('starterStageWrap');
+                if (stageWrap) stageWrap.style.display = currentFilters.onlyStarters ? 'flex' : 'none';
+                // Keep stage selector enabled only when Starters is toggled
+                if (starterStage) starterStage.disabled = !currentFilters.onlyStarters;
+                
+                // Resolve Only/Exclude conflicts
+                syncOnlyExclude();
+                
+                updateFilterCount();
+            }
+            
+            // One unified change listener for the entire filters area
+            if (filtersHost) {
+                filtersHost.addEventListener('change', (e) => {
+                    // If a change happens anywhere inside filters, re-read and update counts
+                    readFiltersFromUI();
+                });
+            }
+            
+            // Initial read (in case there are default-checked boxes)
+            readFiltersFromUI();
+            
+            // Types dropdown toggle logic
+            const typeDropdownBtn = $('typeDropdownBtn');
+            const typeDropdown    = $('typeDropdown');
+            if (typeDropdownBtn && typeDropdown) {
+                typeDropdownBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const open = typeDropdown.style.display === 'block';
+                    typeDropdown.style.display = open ? 'none' : 'block';
+                });
+                document.addEventListener('click', (e) => {
+                    if (!typeDropdown.contains(e.target) && e.target !== typeDropdownBtn) {
+                        typeDropdown.style.display = 'none';
+                    }
+                });
+            }
+        });
+        
+        document.getElementById('startBtn').addEventListener('click', startBracket);
+        document.getElementById('undoBtn').addEventListener('click', undoLast);
+        document.getElementById('shuffleBtn').addEventListener('click', shuffleRemaining);
+        document.getElementById('leftName').addEventListener('click', () => pickWinner('left'));
+        document.getElementById('rightName').addEventListener('click', () => pickWinner('right'));
+        window.addEventListener('DOMContentLoaded', loadData);
+    </script>
 </html>
