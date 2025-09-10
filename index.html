@@ -3,62 +3,68 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
             <meta http-equiv="Content-Style-Type" content="text/css">
-                <title></title>
-                <meta name="Generator" content="Cocoa HTML Writer">
-                    <meta name="CocoaVersion" content="2575.7">
-                        <style type="text/css">
-                            :root{
-                                --bg:#0b0f1a; --bg2:#0d1430; --panel:#111827; --panel2:#0f172a; --text:#eaf0ff; --muted:#a7b0c3; --line:rgba(255,255,255,.12);
-                                --accent:#8bb5ff; --accent2:#94f7c3; --warn:#f59e0b; --ok:#22c55e; --danger:#ef4444;
-                            }
-                            html,body{height:100%}
-                            body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-                            
-                            .wrap{max-width:1100px;margin:24px auto;padding:16px}
-                            .section-title{margin:8px 0 6px;font-weight:800;letter-spacing:.2px}
-                            
-                            .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
-                            
-                            #filters.card{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
-                            
-                            .label{font-weight:600}
-                            .muted{color:var(--muted)}
-                            
-                            .btn{appearance:none;border:none;background:var(--accent);color:#051127;font-weight:800;padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .15s ease, box-shadow .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.28)}
-                            .btn:hover{transform:translateY(-1px)}
-                            .btn:disabled{opacity:.6;cursor:not-allowed;filter:grayscale(.2)}
-                            .btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18)}
-                            
-                            .controls-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
-                            
-                            #match.card{display:grid;grid-template-columns:1fr 80px 1fr;gap:14px;align-items:center;margin-top:14px}
-                            .choice-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));display:flex;flex-direction:column;align-items:center;gap:6px;min-height:170px}
-                            .choice-card img{width:128px;height:128px;object-fit:contain;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35))}
-                            
-                            .vs{display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:800}
-                            .vs::before{content:"VS";display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
-                            
-                            .panel{margin-top:16px}
-                            
-                            #historyList{border:1px solid var(--line);border-radius:12px;padding:10px;max-height:320px;overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
-                            #historyPanel.card h3,#championPanel.card h3{margin:8px 0 8px}
-                            .history-row{display:grid;grid-template-columns:1fr minmax(50px,80px) 1fr auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
-                            .history-row .winner{color:var(--ok);font-weight:800;text-align:right}
-                            
-                            #pairInfo{margin-left:8px;color:var(--muted)}
-                            
-                            select, input[type="checkbox"]{accent-color:var(--accent)}
-                            select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
-                            
-                            .badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-                            
-                            @media (max-width:800px){
-                                .wrap{padding:12px}
-                                #match.card{grid-template-columns:1fr 56px 1fr}
-                                .choice-card{min-height:150px}
-                            }
-                        </style>
-                    </head>
+                <title>Pokémon Bracket</title>
+                <meta name="title" content="Pokémon Bracket">
+                    <meta property="og:title" content="Pokémon Bracket" />
+                    <meta name="Generator" content="Cocoa HTML Writer">
+                        <meta name="CocoaVersion" content="2575.7">
+                            <style type="text/css">
+                                :root{
+                                    --bg:#0b0f1a; --bg2:#0d1430; --panel:#111827; --panel2:#0f172a; --text:#eaf0ff; --muted:#a7b0c3; --line:rgba(255,255,255,.12);
+                                    --accent:#8bb5ff; --accent2:#94f7c3; --warn:#f59e0b; --ok:#22c55e; --danger:#ef4444;
+                                }
+                                html,body{height:100%}
+                                body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+                                
+                                .wrap{max-width:1100px;margin:24px auto;padding:16px}
+                                .section-title{margin:8px 0 6px;font-weight:800;letter-spacing:.2px}
+                                
+                                .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+                                
+                                #filters.card{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+                                
+                                .label{font-weight:600}
+                                .muted{color:var(--muted)}
+                                
+                                .btn{appearance:none;border:none;background:var(--accent);color:#051127;font-weight:800;padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .15s ease, box-shadow .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.28)}
+                                .btn:hover{transform:translateY(-1px)}
+                                .btn:disabled{opacity:.6;cursor:not-allowed;filter:grayscale(.2)}
+                                .btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+                                
+                                .controls-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+                                
+                                #match.card{display:grid;grid-template-columns:1fr 80px 1fr;gap:14px;align-items:center;margin-top:14px}
+                                .choice-card{appearance:none;-webkit-appearance:none;border:1px solid var(--line);border-radius:12px;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));display:flex;flex-direction:column;align-items:center;gap:6px;min-height:170px;cursor:pointer;color:inherit;font:inherit}
+                                .choice-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+                                .choice-card img{width:128px;height:128px;object-fit:contain;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35))}
+                                
+                                .vs{display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:800}
+                                .vs::before{content:"VS";display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+                                
+                                .panel{margin-top:16px}
+                                
+                                #historyList{border:1px solid var(--line);border-radius:12px;padding:10px;max-height:320px;overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
+                                #historyPanel.card h3,#championPanel.card h3{margin:8px 0 8px}
+                                .history-row{display:grid;grid-template-columns:1fr minmax(50px,80px) 1fr auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+                                .history-row .winner{color:var(--ok);font-weight:800;text-align:right}
+                                
+                                #pairInfo{margin-left:8px;color:var(--muted)}
+                                
+                                select, input[type="checkbox"]{accent-color:var(--accent)}
+                                select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+                                
+                                .badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+                                
+                                .kbd-hint{margin:4px 2px 0; font-size:12px}
+                                .kbd{display:inline-block; padding:1px 6px; border-radius:6px; background:rgba(255,255,255,.08); border:1px solid var(--line); font-weight:800}
+                                
+                                @media (max-width:800px){
+                                    .wrap{padding:12px}
+                                    #match.card{grid-template-columns:1fr 56px 1fr}
+                                    .choice-card{min-height:150px}
+                                }
+                            </style>
+                        </head>
     <body>
         <div id="ui" class="wrap">
             <div id="filters" class="card" style="margin-top:10px">
@@ -146,13 +152,20 @@
                 <button id="startBtn" class="btn">Start Bracket</button>
                 <button id="undoBtn" class="btn secondary" disabled>Undo</button>
                 <button id="shuffleBtn" class="btn secondary" disabled>Shuffle Remaining</button>
-                <span id="pairInfo" class="muted"></span>
+                <label style="display:flex;align-items:center;gap:6px;margin-left:6px">
+                    <input type="checkbox" id="autoShuffleChk">Auto-shuffle each round</label>
+                <span id="pairInfo" class="muted" aria-live="polite"></span>
+            </div>
+            <div class="kbd-hint muted">Shortcuts:
+                <span class="kbd">←</span>/<span class="kbd">→</span> to pick,
+                <span class="kbd">U</span> to undo,
+                <span class="kbd">S</span> to shuffle
             </div>
             
             <div id="match" class="card">
-                <div id="leftName"  class="choice-card"></div>
+                <button id="leftName"  class="choice-card" type="button"></button>
                 <div class="vs"></div>
-                <div id="rightName" class="choice-card"></div>
+                <button id="rightName" class="choice-card" type="button"></button>
             </div>
             <div id="historyPanel" class="card panel">
                 <h3 class="section-title">Match History</h3>
@@ -307,12 +320,22 @@
                 leftEl.innerHTML = '';
                 rightEl.innerHTML = '';
                 infoEl.textContent = `Done — ${pairs.length} matches`;
+                // Accessibility: disable buttons and clear ARIA labels
+                leftEl.disabled = true;
+                rightEl.disabled = true;
+                leftEl.setAttribute('aria-label', '');
+                rightEl.setAttribute('aria-label', '');
                 return;
             }
             
             const [a,b] = pairs[pairIndex];
             leftEl.innerHTML = a ? cardHTML(a) : '';
             rightEl.innerHTML = b ? cardHTML(b) : '';
+            // Disable buttons when no contestant and set helpful labels
+            leftEl.disabled = !a;
+            rightEl.disabled = !b;
+            leftEl.setAttribute('aria-label', a ? `Choose ${labelOf(a)}` : 'No contestant');
+            rightEl.setAttribute('aria-label', b ? `Choose ${labelOf(b)}` : 'No contestant');
             
             infoEl.textContent = `Round ${currentRound} — Match ${pairIndex + 1} of ${pairs.length}`;
         }
@@ -453,6 +476,8 @@
         }
         
         //bracket helper functions
+        
+        let autoShuffleRounds = false;
         function shuffle(arr) {
             for (let i = arr.length -1; i>0; i--) {
                 const j = Math.floor(Math.random() * (i+1));
@@ -512,6 +537,7 @@
                 const nextEntrants = winnersThisRound.slice();
                 currentRound = finishedRound+1;
                 workingList = nextEntrants;
+                if (autoShuffleRounds) shuffle(workingList);
                 winnersThisRound = [];
                 pairs = buildPairs(workingList);
                 roundPairs.set(currentRound, pairs.slice());
@@ -587,6 +613,9 @@
                 return;
             }
             shuffle(workingList);
+            // Reset pairInfo at bracket start
+            const infoEl = document.getElementById('pairInfo');
+            if (infoEl) infoEl.textContent = '';
             
             pairs = buildPairs(workingList);
             roundPairs.set(currentRound, pairs.slice());
@@ -682,6 +711,13 @@
                     }
                 });
             }
+            
+            const autoShuffleChk = document.getElementById('autoShuffleChk');
+            if (autoShuffleChk) {
+                autoShuffleChk.addEventListener('change', () => {
+                    autoShuffleRounds = !!autoShuffleChk.checked;
+                });
+            }
         });
         
         document.getElementById('startBtn').addEventListener('click', startBracket);
@@ -690,5 +726,39 @@
         document.getElementById('leftName').addEventListener('click', () => pickWinner('left'));
         document.getElementById('rightName').addEventListener('click', () => pickWinner('right'));
         window.addEventListener('DOMContentLoaded', loadData);
+        
+        // --- Keyboard shortcuts ---
+        // Left Arrow = choose left, Right Arrow = choose right
+        // U = undo last, S = shuffle remaining
+        window.addEventListener('keydown', (e) => {
+            const tag = (document.activeElement && document.activeElement.tagName) ? document.activeElement.tagName.toLowerCase() : '';
+            // Ignore when typing inside form controls or contenteditable
+            if (tag === 'input' || tag === 'select' || tag === 'textarea' || (document.activeElement && document.activeElement.isContentEditable)) {
+                return;
+            }
+            
+            switch (e.key) {
+                case 'ArrowLeft':
+                e.preventDefault();
+                if (Array.isArray(pairs) && pairIndex < pairs.length) pickWinner('left');
+                break;
+                case 'ArrowRight':
+                e.preventDefault();
+                if (Array.isArray(pairs) && pairIndex < pairs.length) pickWinner('right');
+                break;
+                case 'u':
+                case 'U':
+                e.preventDefault();
+                undoLast();
+                break;
+                case 's':
+                case 'S':
+                e.preventDefault();
+                shuffleRemaining();
+                break;
+                default:
+                break;
+            }
+        });
     </script>
 </html>
