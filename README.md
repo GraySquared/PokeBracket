@@ -21,7 +21,7 @@ I used the PokeAPI to export data and tweaked a custom JSON file, in addition to
 *Once the bracket is over a "Champion" section shows up, showing the winner of the tournament.
 
 
-Planned future updates:
+### Planned future updates:
 1. Add types below Pokemon (most likely a checkbox to enable this feature)
 2. Add some sort of analytics, at the end of the tournament present information such as: preferred/not preferred types, generation, etc
 3. General cleanup of any issues
