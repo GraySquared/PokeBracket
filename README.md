@@ -4,14 +4,14 @@ Tool to generate a tournament bracket of Pokemon with various filtering
 The goal of this side project was to make a tournament style bracket generator for all Pokemon, with filtering options to allow for smaller more specific pools (Filters outlined below).
 I used the PokeAPI to export data and tweaked a custom JSON file, in addition to a JSON containing Pokedex info (used for Region filter and potentially a filter by game later on).  Sprites are also stored locally.
 
-##Overview of Filters:
+## Overview of Filters:
 1. Exclusions - automatically checked and removes things such as Mega evolutions, GMax forms, Costumes (for Pikachu), and other alternative forms (eg. Aegislash has Shield and Blade form).
 2. Generation - filters by generation a pokemon was introduced.  Regional forms have been manually changed to show what generation they were introduced in.
 3. Region - using the Pokedex JSON, this filters based on which pokemon are obtainable in the selected region
 4. Types - filters to pokemon that have the selected type(s).  The "Strict Typing" checkbox makes the filter require a pokemon ONLY have the selected types.
 5. Special - filters to Pokemon marked with the specified flags.  Starters will show a dropdown selection for specific starter evolution stages.
 
-##Functionality:
+## Functionality:
 *The "Start Bracket" button will shuffle and generate the bracket based on selected filters.
 *The "Auto-shuffle" checkbox will shuffle the pool at the start of each round.
 *Undo will undo the last choice, Shuffle Remaining will shuffle the remaining pool.
