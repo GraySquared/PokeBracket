@@ -194,13 +194,13 @@
                 <div class="vs"></div>
                 <button id="rightName" class="choice-card" type="button"></button>
             </div>
-            <div id="historyPanel" class="card panel">
-                <h3 class="section-title">Match History</h3>
-                <div id="historyList"></div>
-            </div>
             <div id="championPanel" class="card panel" style="display:none">
                 <h3 class="section-title">Champion</h3>
                 <div id="championCard" class="choice-card" style="display:inline-block"></div>
+            </div>
+            <div id="historyPanel" class="card panel">
+                <h3 class="section-title">Match History</h3>
+                <div id="historyList"></div>
             </div>
         </div>
     </body>
@@ -209,7 +209,7 @@
         let pokemonData = []
         let pokedexes = {};
         
-        let regionIndex = new Map();        // region -> Set(name)
+        let regionIndex = new Map();
         
         function buildDexIndexes() {
             regionIndex = new Map();
@@ -243,7 +243,6 @@
             updateFilterCount();
         }
         
-        //variables
         let workingList = [];
         let pairs = [];
         let pairIndex = 0;
@@ -309,11 +308,8 @@
         
         function displayName(raw) {
             if (!raw) return '(unknown)';
-            // raw may already be pretty (string), or a raw variety/species string
             const s = String(raw);
-            // If it already contains parentheses (e.g., "Rattata (Alola)"), keep as-is
             if (/\(.*\)/.test(s)) return s;
-            // Otherwise lightly prettify hyphenated names
             const parts = s.split('-');
             return parts.map((p,i) => i === 0 ? (p.charAt(0).toUpperCase()+p.slice(1)) : p).join('-');
         }
@@ -347,7 +343,6 @@
                 leftEl.innerHTML = '';
                 rightEl.innerHTML = '';
                 infoEl.textContent = `Done — ${pairs.length} matches`;
-                // Accessibility: disable buttons and clear ARIA labels
                 leftEl.disabled = true;
                 rightEl.disabled = true;
                 leftEl.setAttribute('aria-label', '');
@@ -358,7 +353,6 @@
             const [a,b] = pairs[pairIndex];
             leftEl.innerHTML = a ? cardHTML(a) : '';
             rightEl.innerHTML = b ? cardHTML(b) : '';
-            // Disable buttons when no contestant and set helpful labels
             leftEl.disabled = !a;
             rightEl.disabled = !b;
             leftEl.setAttribute('aria-label', a ? `Choose ${labelOf(a)}` : 'No contestant');
@@ -383,12 +377,11 @@
             }
             
             let html = '';
-            const rounds = Array.from(byRound.keys()).sort((a,b) => a - b);
+            const rounds = Array.from(byRound.keys()).sort((a,b) => b - a);
             for (const r of rounds) {
                 html += `<div style="margin:6px 0 4px;font-weight:700;color:#999">Round ${r}</div>`;
-                const rows = byRound.get(r);
-                for (let i = 0;i<rows.length;i++) {
-                    const m = rows[i];
+                const rows = byRound.get(r).slice().reverse();
+                for (const m of rows) {
                     const a = displayName(m.a);
                     const b = m.b ? displayName(m.b) : '(bye)';
                     const w = displayName(m.winner);
@@ -470,7 +463,6 @@
                     return pass;
                 });
             }
-            // Region filter (union across selected regions)
             if (Array.isArray(f.regions) && f.regions.length) {
                 const allowed = new Set();
                 for (const r of f.regions) {
@@ -489,7 +481,7 @@
                 if (f.excludeMega && (tag === 'mega' || tag === 'primal')) return false;
                 if (f.excludeGmax && tag === 'gmax') return false;
                 if (f.excludeCostume && tag === 'costume') return false;
-                if (f.excludeAltForms && tag === 'form') return false; // keep regional forms
+                if (f.excludeAltForms && tag === 'form') return false;
                 return true;
             });
             return out;
@@ -503,7 +495,6 @@
         }
         
         //bracket helper functions
-        
         let autoShuffleRounds = false;
         function shuffle(arr) {
             for (let i = arr.length -1; i>0; i--) {
@@ -640,7 +631,6 @@
                 return;
             }
             shuffle(workingList);
-            // Reset pairInfo at bracket start
             const infoEl = document.getElementById('pairInfo');
             if (infoEl) infoEl.textContent = '';
             
@@ -650,7 +640,6 @@
             renderPair();
         }
         
-        // Condensed listeners for all filters
         document.addEventListener('DOMContentLoaded', () => {
             const $ = (id) => document.getElementById(id);
             
@@ -676,7 +665,6 @@
             const getSelectedTypes = () => Array.from(document.querySelectorAll('input[name="typeOpt"]:checked')).map(el => el.value);
             
             function syncOnlyExclude() {
-                // If "Only" is active, clear the corresponding Exclude
                 if (onlyMega && onlyMega.checked) { currentFilters.excludeMega = false; if (exMega) exMega.checked = false; }
                 if (onlyGmax && onlyGmax.checked) { currentFilters.excludeGmax = false; if (exGmax) exGmax.checked = false; }
             }
@@ -700,27 +688,21 @@
                 
                 currentFilters.regions       = selectedRegions();
                 
-                // Show/hide the Stage selector when Starters is toggled
                 const stageWrap = document.getElementById('starterStageWrap');
                 if (stageWrap) stageWrap.style.display = currentFilters.onlyStarters ? 'flex' : 'none';
-                // Keep stage selector enabled only when Starters is toggled
                 if (starterStage) starterStage.disabled = !currentFilters.onlyStarters;
                 
-                // Resolve Only/Exclude conflicts
                 syncOnlyExclude();
                 
                 updateFilterCount();
             }
             
-            // One unified change listener for the entire filters area
             if (filtersHost) {
                 filtersHost.addEventListener('change', (e) => {
-                    // If a change happens anywhere inside filters, re-read and update counts
                     readFiltersFromUI();
                 });
             }
             
-            // Initial read (in case there are default-checked boxes)
             readFiltersFromUI();
             
             // Types dropdown toggle logic
@@ -754,12 +736,9 @@
         document.getElementById('rightName').addEventListener('click', () => pickWinner('right'));
         window.addEventListener('DOMContentLoaded', loadData);
         
-        // --- Keyboard shortcuts ---
-        // Left Arrow = choose left, Right Arrow = choose right
-        // U = undo last, S = shuffle remaining
+        //keyboard shortcuts
         window.addEventListener('keydown', (e) => {
             const tag = (document.activeElement && document.activeElement.tagName) ? document.activeElement.tagName.toLowerCase() : '';
-            // Ignore when typing inside form controls or contenteditable
             if (tag === 'input' || tag === 'select' || tag === 'textarea' || (document.activeElement && document.activeElement.isContentEditable)) {
                 return;
             }
