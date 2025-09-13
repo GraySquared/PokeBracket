@@ -175,13 +175,16 @@
                 </div>
             </div>
             
-            <div class="controls-row">
+            <div class="controls-row" style="margin-bottom:6px">
                 <button id="startBtn" class="btn">Start Bracket</button>
+                <label style="display:flex;align-items:center;gap:6px;margin-left:6px">
+                    <input type="checkbox" id="autoShuffleChk">Auto-shuffle each round
+                </label>
+            </div>
+            <div class="controls-row">
                 <button id="undoBtn" class="btn secondary" disabled>Undo</button>
                 <button id="shuffleBtn" class="btn secondary" disabled>Shuffle Remaining</button>
-                <label style="display:flex;align-items:center;gap:6px;margin-left:6px">
-                    <input type="checkbox" id="autoShuffleChk">Auto-shuffle each round</label>
-                <span id="pairInfo" class="muted" aria-live="polite"></span>
+                <span id="pairInfo" class="muted" aria-live="polite" style="margin-left:auto"></span>
             </div>
             <div class="kbd-hint muted">Shortcuts:
                 <span class="kbd">←</span>/<span class="kbd">→</span> to pick,
