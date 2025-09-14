@@ -27,6 +27,15 @@
                                 
                                 .label{font-weight:600}
                                 .muted{color:var(--muted)}
+
+                                /* Utility layout helpers */
+                                .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+                                .check{display:flex;align-items:center;gap:6px}
+
+                                /* Card content for Pokémon name/sprite (replaces inline styles in JS) */
+                                .poke-card{display:flex;flex-direction:column;align-items:center;gap:6px}
+                                .poke-img{width:128px;height:128px;object-fit:contain;display:block}
+                                .poke-name{font-weight:700;text-transform:capitalize;text-align:center}
                                 
                                 .btn{appearance:none;border:none;background:var(--accent);color:#051127;font-weight:800;padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .15s ease, box-shadow .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.28)}
                                 .btn:hover{transform:translateY(-1px)}
@@ -56,8 +65,18 @@
                                 
                                 #historyList{border:1px solid var(--line);border-radius:12px;padding:10px;max-height:320px;overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
                                 #historyPanel.card h3,#championPanel.card h3{margin:8px 0 8px}
-                                .history-row{display:grid;grid-template-columns:1fr minmax(50px,80px) 1fr auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+                                .history-row{display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
                                 .history-row .winner{color:var(--ok);font-weight:800;text-align:right}
+                                .history-row > div{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+                                .history-row .vs{justify-self:center}
+                                /* Explicit placement so VS never gets pushed off row */
+                                .history-row{
+                                  grid-template-areas: "left vs right winner";
+                                }
+                                .history-row > :nth-child(1){grid-area:left}
+                                .history-row > :nth-child(2){grid-area:vs}
+                                .history-row > :nth-child(3){grid-area:right}
+                                .history-row > :nth-child(4){grid-area:winner}
                                 
                                 #pairInfo{margin-left:8px;color:var(--muted)}
                                 
@@ -107,13 +126,13 @@
                 <h3 class="section-title">Filters</h3>
                 <div id="exRow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                     <span style="font-weight:600">Exclude:</span>
-                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="exMega" checked> Mega</label>
-                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="exGmax" checked> Gmax</label>
-                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="exCostume" checked> Costumes</label>
-                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="exAltForms" checked> Alt forms</label>
+                    <label class="check"><input type="checkbox" id="exMega" checked> Mega</label>
+                    <label class="check"><input type="checkbox" id="exGmax" checked> Gmax</label>
+                    <label class="check"><input type="checkbox" id="exCostume" checked> Costumes</label>
+                    <label class="check"><input type="checkbox" id="exAltForms" checked> Alt forms</label>
                 </div>
                 <div id="genRow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-                    <label for="genSelect" style="font-weight:600">Generation:</label>
+                    <label for="genSelect" class="label">Generation:</label>
                     <select id="genSelect">
                         <option value="">All</option>
                         <option value="generation-i">Gen 1</option>
@@ -126,49 +145,49 @@
                         <option value="generation-viii">Gen 8</option>
                         <option value="generation-ix">Gen 9</option>
                     </select>
-                    <label for="regionSelect" style="font-weight:600">Region:</label>
+                    <label for="regionSelect" class="label">Region:</label>
                     <select id="regionSelect">
                         <option value="">All</option>
                     </select>
                 </div>
                 <div id="typeRow" style="display:flex;gap:10px;align-items:center;position:relative">
-                    <label for="typeDropdownBtn" style="font-weight:600">Types:</label>
+                    <label for="typeDropdownBtn" class="label">Types:</label>
                     <button id="typeDropdownBtn" class="btn secondary" type="button" style="padding:6px 10px">Select Types</button>
                     <div id="typeDropdown" style="display:none;position:absolute;top:100%;left:0;margin-top:6px;z-index:20;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.35)">
                         <div id="typeBox" style="display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:6px;max-width:320px">
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="normal"> Normal</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="fire"> Fire</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="water"> Water</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="electric"> Electric</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="grass"> Grass</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="ice"> Ice</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="fighting"> Fighting</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="poison"> Poison</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="ground"> Ground</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="flying"> Flying</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="psychic"> Psychic</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="bug"> Bug</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="rock"> Rock</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="ghost"> Ghost</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="dragon"> Dragon</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="dark"> Dark</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="steel"> Steel</label>
-                            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="typeOpt" value="fairy"> Fairy</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="normal"> Normal</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="fire"> Fire</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="water"> Water</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="electric"> Electric</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="grass"> Grass</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="ice"> Ice</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="fighting"> Fighting</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="poison"> Poison</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="ground"> Ground</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="flying"> Flying</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="psychic"> Psychic</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="bug"> Bug</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="rock"> Rock</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="ghost"> Ghost</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="dragon"> Dragon</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="dark"> Dark</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="steel"> Steel</label>
+                            <label class="check"><input type="checkbox" name="typeOpt" value="fairy"> Fairy</label>
                         </div>
                     </div>
                     <div style="margin-top:8px">
-                        <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="typesModeAll">Strict Typing</label>
+                        <label class="check" style="gap:8px"><input type="checkbox" id="typesModeAll">Strict Typing</label>
                     </div>
                 </div>
                 
                 <div id="specialRow" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
                     <span style="font-weight:600">Special:</span>
-                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyLegendary"> Legendary</label>
-                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyMythical"> Mythical</label>
-                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyMega"> Mega</label>
-                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyGmax"> Gmax</label>
-                    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyStarters"> Starters</label>
-                    <label id="starterStageWrap" style="display:none;align-items:center;gap:6px">
+                    <label class="check"><input type="checkbox" id="onlyLegendary"> Legendary</label>
+                    <label class="check"><input type="checkbox" id="onlyMythical"> Mythical</label>
+                    <label class="check"><input type="checkbox" id="onlyMega"> Mega</label>
+                    <label class="check"><input type="checkbox" id="onlyGmax"> Gmax</label>
+                    <label class="check"><input type="checkbox" id="onlyStarters"> Starters</label>
+                    <label id="starterStageWrap" class="check" style="display:none;align-items:center;gap:6px">
                         Stage:
                         <select id="starterStage" disabled>
                             <option value="all">All</option>
@@ -186,14 +205,14 @@
             
             <div class="controls-row" style="margin-bottom:6px">
                 <button id="startBtn" class="btn">Start Bracket</button>
-                <label style="display:flex;align-items:center;gap:6px;margin-left:6px">
+                <label class="check" style="margin-left:6px">
                     <input type="checkbox" id="autoShuffleChk">Auto-shuffle each round
                 </label>
             </div>
             <div class="controls-row">
                 <button id="undoBtn" class="btn secondary" disabled>Undo</button>
                 <button id="shuffleBtn" class="btn secondary" disabled>Shuffle Remaining</button>
-                <span id="pairInfo" class="muted" aria-live="polite" style="margin-left:auto"></span>
+                <span id="pairInfo" class="muted" aria-live="polite"></span>
             </div>
             <div class="kbd-hint muted">Shortcuts:
                 <span class="kbd">←</span>/<span class="kbd">→</span> to pick,
@@ -212,7 +231,7 @@
             </div>
             <div id="historyPanel" class="card panel">
                 <h3 class="section-title">Match History</h3>
-                <div id="historyList"></div>
+                <div id="historyList" role="log" aria-live="polite"></div>
             </div>
         </div>
     </body>
@@ -335,10 +354,10 @@
             if (!r) return '';
             const url = artworkUrlFor(r);
             const name = labelOf(r);
-            const img = url ? `<img src="${url}" alt="${name}" style="width:128px;height:128px;object-fit:contain;display:block" onerror="this.style.display='none'">` : '';
-            return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+            const img = url ? `<img class="poke-img" src="${url}" alt="${name}" onerror="this.style.display='none'">` : '';
+            return `<div class="poke-card">
   ${img}
-  <div style="font-weight:700;text-transform:capitalize;text-align:center">${name}</div>
+  <div class="poke-name">${name}</div>
 </div>`;
         }
         
@@ -633,8 +652,6 @@
             matchHistory = [];
             roundPairs = new Map();
             clearChampion();
-            
-            const historyHost = document.getElementById('historyList');
             
             workingList = applyFilters(pokemonData, currentFilters);
             
