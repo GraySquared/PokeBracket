@@ -35,45 +35,49 @@
                                 /* Card content for Pokémon name/sprite (replaces inline styles in JS) */
                                 /* Update your CSS with these improved classes */
 
+                                /* REPLACE YOUR CSS BLOCK WITH THIS */
+
                                 .poke-card {
+                                    position: relative; /* This makes the card the anchor for absolute positioning */
                                     display: flex;
                                     flex-direction: column;
                                     align-items: center;
-                                    gap: 2px;
+                                    justify-content: center; /* Perfectly centers the Image and Name */
                                     height: 100%;
-                                    /* removed justify-content: center so we can control spacing manually */
+                                    
+                                    /* Crucial: Reserve space at the bottom so content doesn't sit behind the icons */
+                                    padding-bottom: 30px;
+                                    box-sizing: border-box;
                                 }
 
                                 .poke-img {
-                                    /* Change fixed height to flexible max-height to prevent squishing */
                                     width: auto;
                                     height: auto;
-                                    max-height: 128px;
+                                    /* Limit height so it doesn't overlap the types, but allow it to shrink */
+                                    max-height: 110px;
                                     max-width: 100%;
                                     object-fit: contain;
-                                    
-                                    /* "Spring" 1: Pushes down from the top */
-                                    margin-top: auto;
+                                    flex-shrink: 1; /* Allows the image to get smaller on mobile without squashing */
                                 }
 
                                 .poke-name {
                                     font-weight: 700;
                                     text-transform: capitalize;
                                     text-align: center;
-                                    
-                                    /* "Spring" 2: Pushes the Types away to the bottom */
-                                    margin-bottom: auto;
+                                    margin-top: 4px;
+                                    flex-shrink: 0; /* Ensures the text never gets cut off */
                                 }
 
                                 .poke-types {
+                                    /* "Absolute" removes it from the flow and pins it to the bottom */
+                                    position: absolute;
+                                    bottom: 8px;
+                                    left: 0;
+                                    right: 0;
+                                    
                                     display: flex;
                                     gap: 5px;
                                     justify-content: center;
-                                    
-                                    /* Reduced top margin since the "spring" handles the spacing now */
-                                    margin-top: 4px;
-                                    margin-bottom: 8px; /* A little padding from the absolute bottom */
-                                    flex-shrink: 0; /* Ensures types never get squished */
                                 }
                                 .type-icon {
                                     height: 18px; /* Adjust this size if you want them bigger/smaller */
