@@ -32,77 +32,10 @@
                                 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
                                 .check{display:flex;align-items:center;gap:6px}
 
-                                /* Card content for Pokémon name/sprite (replaces inline styles in JS) */
-                                /* Update your CSS with these improved classes */
-
-                                /* REPLACE YOUR CSS BLOCK WITH THIS */
-
-                                /* REPLACE YOUR EXISTING BLOCK WITH THIS */
-
-                                .poke-card {
-                                    /* The card now controls ALL spacing */
-                                    width: 100%;
-                                    height: 100%;
-                                    position: relative; /* Anchor for the absolute types */
-                                    
-                                    display: flex;
-                                    flex-direction: column;
-                                    align-items: center;
-                                    justify-content: center; /* Centers the Image/Name group vertically */
-                                    
-                                    padding: 10px;         /* Standard padding around the edges */
-                                    padding-bottom: 35px;  /* EXTRA padding at bottom to reserve space for types */
-                                    box-sizing: border-box;
-                                }
-
-                                .poke-img {
-                                    width: auto;
-                                    height: auto;
-                                    max-height: 110px; /* Prevents image from growing too large */
-                                    max-width: 100%;
-                                    object-fit: contain;
-                                    flex-shrink: 1; /* Allows image to shrink without squishing */
-                                }
-
-                                .poke-name {
-                                    font-weight: 700;
-                                    text-transform: capitalize;
-                                    text-align: center;
-                                    margin-top: 5px;
-                                    line-height: 1.2;
-                                    z-index: 2;
-                                }
-
-                                .poke-types {
-                                    /* Pin to the bottom of the .poke-card */
-                                    position: absolute;
-                                    bottom: 8px;
-                                    left: 0;
-                                    right: 0;
-                                    
-                                    display: flex;
-                                    gap: 5px;
-                                    justify-content: center;
-                                    pointer-events: none; /* Let clicks pass through to the button */
-                                }
-
-                                .type-icon {
-                                    height: 18px;
-                                    width: auto;
-                                    object-fit: contain;
-                                }
+                                /* --- NEW CARD LAYOUT START --- */
                                 
-                                .btn{appearance:none;border:none;background:var(--accent);color:#051127;font-weight:800;padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .15s ease, box-shadow .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.28)}
-                                .btn:hover{transform:translateY(-1px)}
-                                .btn:disabled{opacity:.6;cursor:not-allowed;filter:grayscale(.2)}
-                                .btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18)}
-                                .btn, .choice-card{touch-action:manipulation}
-                                
-                                .controls-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
-                                
-                                #match.card{display:grid;grid-template-columns:1fr 80px 1fr;gap:14px;align-items:center;margin-top:14px}
+                                /* 1. The Button Container */
                                 .choice-card {
-                                    /* RESET: Strip all default button spacing so the inner card fits 100% */
                                     appearance: none;
                                     -webkit-appearance: none;
                                     border: 1px solid var(--line);
@@ -113,19 +46,89 @@
                                     font: inherit;
                                     touch-action: manipulation;
                                     
-                                    /* CRITICAL FIXES: */
+                                    /* Layout Reset */
+                                    display: block;
                                     width: 100%;
-                                    min-height: 170px; /* Force the button to be tall enough */
-                                    padding: 0;        /* REMOVE default button padding */
-                                    display: block;    /* Stop the button from acting like a flex container */
-                                    overflow: hidden;  /* keeps child elements inside the rounded corners */
+                                    min-height: 180px; /* Ensure enough height for everything */
+                                    padding: 0; /* IMPORTANT: No padding here, let the inner card handle it */
+                                    overflow: hidden;
+                                    position: relative;
                                 }
 
                                 .choice-card:focus-visible {
                                     outline: 2px solid var(--accent);
                                     outline-offset: 2px;
                                 }
-                                .choice-card img{width:128px;height:128px;object-fit:contain;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35))}
+
+                                /* 2. The Inner Card Content */
+                                .poke-card {
+                                    width: 100%;
+                                    height: 100%;
+                                    position: relative;
+                                    
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: center;
+                                    justify-content: center; /* Vertically center the image group */
+                                    
+                                    padding: 10px;
+                                    padding-bottom: 35px; /* Reserve space for types at bottom */
+                                    box-sizing: border-box;
+                                }
+
+                                /* 3. The Image */
+                                .poke-img {
+                                    width: auto;
+                                    height: auto;
+                                    max-height: 110px; /* Limit height so it fits */
+                                    max-width: 100%;
+                                    object-fit: contain;
+                                    flex-shrink: 1;
+                                    display: block;
+                                    filter: drop-shadow(0 10px 20px rgba(0,0,0,.35));
+                                }
+
+                                /* 4. The Name */
+                                .poke-name {
+                                    font-weight: 700;
+                                    text-transform: capitalize;
+                                    text-align: center;
+                                    margin-top: 8px;
+                                    line-height: 1.2;
+                                    z-index: 2;
+                                }
+
+                                /* 5. The Types (Pinned to Bottom) */
+                                .poke-types {
+                                    position: absolute;
+                                    bottom: 8px; /* Stick to bottom of button */
+                                    left: 0;
+                                    right: 0;
+                                    
+                                    display: flex;
+                                    gap: 5px;
+                                    justify-content: center;
+                                    pointer-events: none;
+                                }
+
+                                .type-icon {
+                                    height: 18px;
+                                    width: auto;
+                                    object-fit: contain;
+                                }
+
+                                /* --- NEW CARD LAYOUT END --- */
+                                
+                                .btn{appearance:none;border:none;background:var(--accent);color:#051127;font-weight:800;padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .15s ease, box-shadow .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.28)}
+                                .btn:hover{transform:translateY(-1px)}
+                                .btn:disabled{opacity:.6;cursor:not-allowed;filter:grayscale(.2)}
+                                .btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+                                .btn, .choice-card{touch-action:manipulation}
+                                
+                                .controls-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+                                
+                                #match.card{display:grid;grid-template-columns:1fr 80px 1fr;gap:14px;align-items:center;margin-top:14px}
+                                
                                 #championPanel .choice-card {
                                     width:100%;
                                     max-width:320px;
@@ -175,8 +178,8 @@
                                   .wrap{padding:10px}
                                   .controls-row{gap:8px}
                                   .btn{padding:12px 16px;font-size:16px}
-                                  .choice-card{min-height:160px;padding:14px}
-                                  .choice-card img{width:112px;height:112px}
+                                  /* REMOVED THE CONFLICTING PADDING RULE HERE */
+                                  .choice-card{min-height:160px;}
                                   #filters.card{gap:12px}
                                 }
 
@@ -192,7 +195,6 @@
                                 @media (max-width:420px){
                                   h3.section-title{font-size:16px}
                                   .btn{font-size:15px}
-                                  .choice-card img{width:96px;height:96px}
                                   #championPanel .choice-card{max-width:260px}
                                 }
                             </style>
