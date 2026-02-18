@@ -33,7 +33,14 @@
                                 .check{display:flex;align-items:center;gap:6px}
 
                                 /* Card content for Pokémon name/sprite (replaces inline styles in JS) */
-                                .poke-card{display:flex;flex-direction:column;align-items:center;gap:6px}
+                                .poke-card {
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: center;
+                                    gap: 2px; /* Reduced from 6px to keep Image+Name close */
+                                    height: 100%; /* Ensures the card uses full available height */
+                                    justify-content: center; /* Tries to center content vertically */
+                                }
                                 .poke-img{width:128px;height:128px;object-fit:contain;display:block}
                                 .poke-name{font-weight:700;text-transform:capitalize;text-align:center}
                                 /* Add to your CSS */
@@ -41,7 +48,8 @@
                                     display: flex;
                                     gap: 5px;
                                     justify-content: center;
-                                    margin-top: 4px;
+                                    margin-top: 12px; /* Increased from 4px to push it lower */
+                                    margin-bottom: 4px; /* A little breathing room at the very bottom */
                                 }
                                 .type-icon {
                                     height: 18px; /* Adjust this size if you want them bigger/smaller */
@@ -366,7 +374,7 @@
             if (!r) return '';
             const url = artworkUrlFor(r);
             const name = labelOf(r);
-            const img = url ? `<img class="poke-img" src="${url}" alt="${name}" onerror="this.style.display='none'">` : '';
+            const img = url ? `<img class="poke-img" src="${url}" alt="${name}" onerror="this.onerror=null;this.src='placeholder.png';">` : '<div class="poke-img-placeholder">?</div>';
 
             // NEW: Generate the HTML for type icons
             // This assumes your files are at "types/fire.png", "types/water.png", etc.
