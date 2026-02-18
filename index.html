@@ -36,6 +36,18 @@
                                 .poke-card{display:flex;flex-direction:column;align-items:center;gap:6px}
                                 .poke-img{width:128px;height:128px;object-fit:contain;display:block}
                                 .poke-name{font-weight:700;text-transform:capitalize;text-align:center}
+                                /* Add to your CSS */
+                                .poke-types {
+                                    display: flex;
+                                    gap: 5px;
+                                    justify-content: center;
+                                    margin-top: 4px;
+                                }
+                                .type-icon {
+                                    height: 18px; /* Adjust this size if you want them bigger/smaller */
+                                    width: auto;
+                                    object-fit: contain;
+                                }
                                 
                                 .btn{appearance:none;border:none;background:var(--accent);color:#051127;font-weight:800;padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .15s ease, box-shadow .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.28)}
                                 .btn:hover{transform:translateY(-1px)}
@@ -355,10 +367,21 @@
             const url = artworkUrlFor(r);
             const name = labelOf(r);
             const img = url ? `<img class="poke-img" src="${url}" alt="${name}" onerror="this.style.display='none'">` : '';
+
+            // NEW: Generate the HTML for type icons
+            // This assumes your files are at "types/fire.png", "types/water.png", etc.
+            let typeIcons = '';
+            if (r.types && Array.isArray(r.types)) {
+                typeIcons = `<div class="poke-types">
+                    ${r.types.map(t => `<img class="type-icon" src="types/${t}.png" alt="${t}">`).join('')}
+                </div>`;
+            }
+
             return `<div class="poke-card">
-  ${img}
-  <div class="poke-name">${name}</div>
-</div>`;
+                ${img}
+                <div class="poke-name">${name}</div>
+                ${typeIcons}
+            </div>`;
         }
         
         function renderPair() {
