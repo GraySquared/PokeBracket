@@ -33,23 +33,47 @@
                                 .check{display:flex;align-items:center;gap:6px}
 
                                 /* Card content for Pokémon name/sprite (replaces inline styles in JS) */
+                                /* Update your CSS with these improved classes */
+
                                 .poke-card {
                                     display: flex;
                                     flex-direction: column;
                                     align-items: center;
-                                    gap: 2px; /* Reduced from 6px to keep Image+Name close */
-                                    height: 100%; /* Ensures the card uses full available height */
-                                    justify-content: center; /* Tries to center content vertically */
+                                    gap: 2px;
+                                    height: 100%;
+                                    /* removed justify-content: center so we can control spacing manually */
                                 }
-                                .poke-img{width:128px;height:128px;object-fit:contain;display:block}
-                                .poke-name{font-weight:700;text-transform:capitalize;text-align:center}
-                                /* Add to your CSS */
+
+                                .poke-img {
+                                    /* Change fixed height to flexible max-height to prevent squishing */
+                                    width: auto;
+                                    height: auto;
+                                    max-height: 128px;
+                                    max-width: 100%;
+                                    object-fit: contain;
+                                    
+                                    /* "Spring" 1: Pushes down from the top */
+                                    margin-top: auto;
+                                }
+
+                                .poke-name {
+                                    font-weight: 700;
+                                    text-transform: capitalize;
+                                    text-align: center;
+                                    
+                                    /* "Spring" 2: Pushes the Types away to the bottom */
+                                    margin-bottom: auto;
+                                }
+
                                 .poke-types {
                                     display: flex;
                                     gap: 5px;
                                     justify-content: center;
-                                    margin-top: 12px; /* Increased from 4px to push it lower */
-                                    margin-bottom: 4px; /* A little breathing room at the very bottom */
+                                    
+                                    /* Reduced top margin since the "spring" handles the spacing now */
+                                    margin-top: 4px;
+                                    margin-bottom: 8px; /* A little padding from the absolute bottom */
+                                    flex-shrink: 0; /* Ensures types never get squished */
                                 }
                                 .type-icon {
                                     height: 14px; /* Adjust this size if you want them bigger/smaller */
