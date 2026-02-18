@@ -40,49 +40,55 @@
                                 /* REPLACE YOUR EXISTING BLOCK WITH THIS */
 
                                 .poke-card {
-                                    position: relative; /* Essential: This makes the card the anchor */
+                                    width: 100%;
+                                    height: 100%;
+                                    
+                                    /* We add the padding back here, plus extra at the bottom for types */
+                                    padding: 12px;
+                                    padding-bottom: 30px; /* Safe zone for the absolute icons */
+                                    box-sizing: border-box;
+                                    
+                                    position: relative; /* Anchor for the icons */
                                     display: flex;
                                     flex-direction: column;
                                     align-items: center;
-                                    justify-content: center; /* Keeps the image vertically centered */
-                                    height: 100%;
-                                    
-                                    /* Create a safe zone at the bottom so the image doesn't go behind the types */
-                                    padding-bottom: 25px;
-                                    box-sizing: border-box;
+                                    justify-content: center; /* Centers Image + Name vertically */
                                 }
 
                                 .poke-img {
-                                    /* Allow the image to be as big as possible within the safe zone */
                                     width: auto;
                                     height: auto;
-                                    max-height: 80%; /* Prevents it from getting too tall */
-                                    max-width: 90%;
+                                    /* Allow image to shrink if needed, but aim for a good size */
+                                    max-height: 100px;
+                                    max-width: 100%;
                                     object-fit: contain;
+                                    flex-shrink: 1; /* Prevents squishing by scaling down gracefully */
                                 }
 
                                 .poke-name {
                                     font-weight: 700;
                                     text-transform: capitalize;
                                     text-align: center;
-                                    margin-top: 4px;
-                                    z-index: 2; /* Ensures text is always on top */
+                                    margin-top: 8px;
+                                    line-height: 1.2;
+                                    z-index: 2;
                                 }
 
+                                /* 3. UPDATE: Pin types to the absolute bottom of the card */
                                 .poke-types {
-                                    /* Pin the types to the bottom regardless of image size */
                                     position: absolute;
-                                    bottom: 0;
+                                    bottom: 8px; /* Fixed distance from the very bottom edge */
                                     left: 0;
                                     right: 0;
                                     
                                     display: flex;
                                     gap: 5px;
                                     justify-content: center;
-                                    padding-bottom: 5px; /* Space from the very bottom edge */
+                                    pointer-events: none; /* Let clicks pass through to the button */
                                 }
+
                                 .type-icon {
-                                    height: 18px; /* Adjust this size if you want them bigger/smaller */
+                                    height: 18px;
                                     width: auto;
                                     object-fit: contain;
                                 }
@@ -96,8 +102,29 @@
                                 .controls-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
                                 
                                 #match.card{display:grid;grid-template-columns:1fr 80px 1fr;gap:14px;align-items:center;margin-top:14px}
-                                .choice-card{appearance:none;-webkit-appearance:none;border:1px solid var(--line);border-radius:12px;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));display:flex;flex-direction:column;align-items:center;gap:6px;min-height:170px;cursor:pointer;color:inherit;font:inherit;touch-action:manipulation;width:100%}
-                                .choice-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+                                .choice-card {
+                                    /* Keep the visual style */
+                                    appearance: none;
+                                    -webkit-appearance: none;
+                                    border: 1px solid var(--line);
+                                    border-radius: 12px;
+                                    background: linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));
+                                    min-height: 170px;
+                                    cursor: pointer;
+                                    color: inherit;
+                                    font: inherit;
+                                    touch-action: manipulation;
+                                    width: 100%;
+                                    
+                                    /* CRITICAL CHANGES: */
+                                    padding: 0; /* Remove padding so the inner card can reach the edges */
+                                    display: block; /* Stop trying to flex-align the content automatically */
+                                }
+
+                                .choice-card:focus-visible {
+                                    outline: 2px solid var(--accent);
+                                    outline-offset: 2px;
+                                }
                                 .choice-card img{width:128px;height:128px;object-fit:contain;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35))}
                                 #championPanel .choice-card {
                                     width:100%;
