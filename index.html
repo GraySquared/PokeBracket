@@ -37,27 +37,28 @@
 
                                 /* REPLACE YOUR CSS BLOCK WITH THIS */
 
+                                /* REPLACE YOUR EXISTING BLOCK WITH THIS */
+
                                 .poke-card {
-                                    position: relative; /* This makes the card the anchor for absolute positioning */
+                                    position: relative; /* Essential: This makes the card the anchor */
                                     display: flex;
                                     flex-direction: column;
                                     align-items: center;
-                                    justify-content: center; /* Perfectly centers the Image and Name */
+                                    justify-content: center; /* Keeps the image vertically centered */
                                     height: 100%;
                                     
-                                    /* Crucial: Reserve space at the bottom so content doesn't sit behind the icons */
-                                    padding-bottom: 30px;
+                                    /* Create a safe zone at the bottom so the image doesn't go behind the types */
+                                    padding-bottom: 25px;
                                     box-sizing: border-box;
                                 }
 
                                 .poke-img {
+                                    /* Allow the image to be as big as possible within the safe zone */
                                     width: auto;
                                     height: auto;
-                                    /* Limit height so it doesn't overlap the types, but allow it to shrink */
-                                    max-height: 110px;
-                                    max-width: 100%;
+                                    max-height: 80%; /* Prevents it from getting too tall */
+                                    max-width: 90%;
                                     object-fit: contain;
-                                    flex-shrink: 1; /* Allows the image to get smaller on mobile without squashing */
                                 }
 
                                 .poke-name {
@@ -65,19 +66,20 @@
                                     text-transform: capitalize;
                                     text-align: center;
                                     margin-top: 4px;
-                                    flex-shrink: 0; /* Ensures the text never gets cut off */
+                                    z-index: 2; /* Ensures text is always on top */
                                 }
 
                                 .poke-types {
-                                    /* "Absolute" removes it from the flow and pins it to the bottom */
+                                    /* Pin the types to the bottom regardless of image size */
                                     position: absolute;
-                                    bottom: 8px;
+                                    bottom: 0;
                                     left: 0;
                                     right: 0;
                                     
                                     display: flex;
                                     gap: 5px;
                                     justify-content: center;
+                                    padding-bottom: 5px; /* Space from the very bottom edge */
                                 }
                                 .type-icon {
                                     height: 18px; /* Adjust this size if you want them bigger/smaller */
