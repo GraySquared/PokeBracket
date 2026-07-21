@@ -78,12 +78,8 @@
                                     display:flex;align-items:center;gap:10px;
                                 }
                                 .pokeball-icon{
-                                    width:26px;height:26px;flex-shrink:0;border-radius:50%;
-                                    background:
-                                        radial-gradient(circle at 50% 50%, #fff 0 16%, #111 16% 21%, transparent 21%),
-                                        linear-gradient(#ff5b3d 0 48%, #111 48% 52%, #fff 52% 100%);
-                                    border:2px solid #111;
-                                    box-shadow:0 2px 6px rgba(0,0,0,.4);
+                                    width:28px;height:28px;flex-shrink:0;
+                                    filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));
                                 }
 
                                 .section-title{
@@ -205,30 +201,22 @@
                                     object-fit: contain;
                                 }
 
-                                /* 6. Per-type glow ring — subtle tint matching the Pokémon's primary type */
-                                .poke-card[data-type]{
+                                /* 6. Type-colored border — solid ring for single-type Pokémon, a diagonal
+                                   half-and-half split when there's a second type. Colors come from the
+                                   --type-accent/--type-accent2 custom properties set inline per-card in JS
+                                   (see cardHTML), which point at the --type-* swatches defined in :root. */
+                                .poke-card{
                                     border-radius:12px;
-                                    border:2px solid var(--type-accent, var(--line));
-                                    box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), 0 0 22px 2px var(--type-glow, transparent);
+                                    border:2px solid transparent;
+                                    background-image:
+                                        linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)),
+                                        linear-gradient(135deg, var(--type-accent, var(--line)) 50%, var(--type-accent2, var(--type-accent, var(--line))) 50%);
+                                    background-origin:border-box;
+                                    background-clip:padding-box, border-box;
+                                    /* Fallback glow for browsers without color-mix() support */
+                                    box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), 0 0 18px 2px rgba(255,255,255,.06);
+                                    box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), 0 0 22px 3px color-mix(in srgb, var(--type-accent, var(--line)) 45%, transparent);
                                 }
-                                .poke-card[data-type="normal"]{--type-accent:var(--type-normal);--type-glow:rgba(168,168,120,.35)}
-                                .poke-card[data-type="fire"]{--type-accent:var(--type-fire);--type-glow:rgba(240,128,48,.4)}
-                                .poke-card[data-type="water"]{--type-accent:var(--type-water);--type-glow:rgba(104,144,240,.4)}
-                                .poke-card[data-type="electric"]{--type-accent:var(--type-electric);--type-glow:rgba(240,192,32,.4)}
-                                .poke-card[data-type="grass"]{--type-accent:var(--type-grass);--type-glow:rgba(120,200,80,.4)}
-                                .poke-card[data-type="ice"]{--type-accent:var(--type-ice);--type-glow:rgba(152,216,216,.4)}
-                                .poke-card[data-type="fighting"]{--type-accent:var(--type-fighting);--type-glow:rgba(192,48,40,.4)}
-                                .poke-card[data-type="poison"]{--type-accent:var(--type-poison);--type-glow:rgba(160,64,160,.4)}
-                                .poke-card[data-type="ground"]{--type-accent:var(--type-ground);--type-glow:rgba(224,192,104,.4)}
-                                .poke-card[data-type="flying"]{--type-accent:var(--type-flying);--type-glow:rgba(168,144,240,.4)}
-                                .poke-card[data-type="psychic"]{--type-accent:var(--type-psychic);--type-glow:rgba(248,88,136,.4)}
-                                .poke-card[data-type="bug"]{--type-accent:var(--type-bug);--type-glow:rgba(168,184,32,.4)}
-                                .poke-card[data-type="rock"]{--type-accent:var(--type-rock);--type-glow:rgba(184,160,56,.4)}
-                                .poke-card[data-type="ghost"]{--type-accent:var(--type-ghost);--type-glow:rgba(112,88,152,.4)}
-                                .poke-card[data-type="dragon"]{--type-accent:var(--type-dragon);--type-glow:rgba(112,56,248,.4)}
-                                .poke-card[data-type="dark"]{--type-accent:var(--type-dark);--type-glow:rgba(138,117,104,.4)}
-                                .poke-card[data-type="steel"]{--type-accent:var(--type-steel);--type-glow:rgba(184,184,208,.4)}
-                                .poke-card[data-type="fairy"]{--type-accent:var(--type-fairy);--type-glow:rgba(238,153,172,.4)}
 
                                 /* --- NEW CARD LAYOUT END --- */
                                 
@@ -281,12 +269,9 @@
                                 .vs::before{
                                     content:"";
                                     display:block;
-                                    width:44px;height:44px;border-radius:999px;
-                                    background:
-                                        radial-gradient(circle at 50% 50%, #fff 0 16%, #111 16% 21%, transparent 21%),
-                                        linear-gradient(#e3350d 0 48%, #111 48% 52%, #fff 52% 100%);
-                                    border:2px solid #111;
-                                    box-shadow:0 4px 12px rgba(0,0,0,.45);
+                                    width:44px;height:44px;
+                                    background:url('pokeball.svg') center/contain no-repeat;
+                                    filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));
                                 }
                                 .vs-label{
                                     font-family:var(--display-font);
@@ -366,7 +351,7 @@
                     <span class="light light-yellow"></span>
                     <span class="light light-green"></span>
                 </div>
-                <h1 class="app-title"><span class="pokeball-icon" aria-hidden="true"></span>Pokémon Bracket</h1>
+                <h1 class="app-title"><img class="pokeball-icon" src="pokeball.svg" alt="" aria-hidden="true">Pokémon Bracket</h1>
             </div>
             <div id="filters" class="card" style="margin-top:10px">
                 <h3 class="section-title">Filters</h3>
@@ -647,11 +632,18 @@
                 </div>`;
             }
 
-            // Primary type drives the card's glow/border color (see .poke-card[data-type] in CSS)
-            const primaryType = (Array.isArray(r.types) && r.types[0]) ? String(r.types[0]).toLowerCase() : '';
-            const typeAttr = primaryType ? ` data-type="${primaryType}"` : '';
+            // Primary/secondary type drive the card's border color (see .poke-card in CSS):
+            // a solid ring for single-type Pokémon, a diagonal half-and-half split for two types.
+            const types = Array.isArray(r.types) ? r.types.map(t => String(t).toLowerCase()).filter(Boolean) : [];
+            const [type1, type2] = types;
+            let typeAttrs = '';
+            if (type1) {
+                const accent1 = `var(--type-${type1})`;
+                const accent2 = type2 ? `var(--type-${type2})` : accent1;
+                typeAttrs = ` data-type="${type1}"${type2 ? ` data-type2="${type2}"` : ''} style="--type-accent:${accent1};--type-accent2:${accent2}"`;
+            }
 
-            return `<div class="poke-card"${typeAttr}>
+            return `<div class="poke-card"${typeAttrs}>
                 ${img}
                 <div class="poke-name">${name}</div>
                 ${typeIcons}
