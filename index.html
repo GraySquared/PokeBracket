@@ -345,20 +345,51 @@
         }
         
         async function loadData() {
-            const pokeRes = await fetch('pokemon.json');
-            let rawPokemon = await pokeRes.json();
-            pokemonData = rawPokemon.filter(p => (p.variety_tag || '').toLowerCase() !== 'exclude');
-            
-            const dexRes = await fetch('pokedexes.json');
-            pokedexes = await dexRes.json();
-            
-            console.log("Loaded", pokemonData.length, "pokemon entries");
-            console.log("Available pokedexes:", Object.keys(pokedexes));
-            buildDexIndexes();
-            populateRegionVersionUI();
-            updateFilterCount();
+            try {
+                // Fetch both files concurrently instead of one after another —
+                // halves the network-bound part of startup on a cold load.
+                const [pokeRes, dexRes] = await Promise.all([
+                    fetch('pokemon.json'),
+                    fetch('pokedexes.json')
+                ]);
+                if (!pokeRes.ok) throw new Error(`pokemon.json failed to load (HTTP ${pokeRes.status})`);
+                if (!dexRes.ok) throw new Error(`pokedexes.json failed to load (HTTP ${dexRes.status})`);
+
+                const [rawPokemon, dexJson] = await Promise.all([pokeRes.json(), dexRes.json()]);
+
+                pokemonData = rawPokemon.filter(p => (p.variety_tag || '').toLowerCase() !== 'exclude');
+                pokedexes = dexJson;
+
+                console.log("Loaded", pokemonData.length, "pokemon entries");
+                console.log("Available pokedexes:", Object.keys(pokedexes));
+                buildDexIndexes();
+                populateRegionVersionUI();
+                updateFilterCount();
+            } catch (err) {
+                console.error('Failed to load bracket data:', err);
+                if (dom.filterCount) dom.filterCount.textContent = 'Failed to load Pokémon data — please refresh and try again.';
+                if (dom.startBtn) dom.startBtn.disabled = true;
+            }
         }
         
+        // Cached DOM references (populated once in init(), reused across hot-path
+        // functions like renderPair/renderHistory instead of re-querying every call).
+        const dom = {};
+        function cacheDom() {
+            dom.leftName      = document.getElementById('leftName');
+            dom.rightName     = document.getElementById('rightName');
+            dom.pairInfo      = document.getElementById('pairInfo');
+            dom.undoBtn       = document.getElementById('undoBtn');
+            dom.shuffleBtn    = document.getElementById('shuffleBtn');
+            dom.bothWinBtn    = document.getElementById('bothWinBtn');
+            dom.championPanel = document.getElementById('championPanel');
+            dom.championCard  = document.getElementById('championCard');
+            dom.historyList   = document.getElementById('historyList');
+            dom.filterCount   = document.getElementById('filterCount');
+            dom.regionSelect  = document.getElementById('regionSelect');
+            dom.startBtn      = document.getElementById('startBtn');
+        }
+
         let workingList = [];
         let pairs = [];
         let pairIndex = 0;
@@ -385,7 +416,7 @@
         
         //display logic
         function populateRegionVersionUI() {
-            const sel = document.getElementById('regionSelect');
+            const sel = dom.regionSelect || document.getElementById('regionSelect');
             if (!sel) return;
             sel.innerHTML = '<option value="">All</option>';
             const regions = Array.from(new Set(
@@ -439,7 +470,7 @@
             if (!r) return '';
             const url = artworkUrlFor(r);
             const name = labelOf(r);
-            const img = url ? `<img class="poke-img" src="${url}" alt="${name}" onerror="this.onerror=null;this.src='placeholder.png';">` : '<div class="poke-img-placeholder">?</div>';
+            const img = url ? `<img class="poke-img" src="${url}" alt="${name}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='placeholder.png';">` : '<div class="poke-img-placeholder">?</div>';
 
             // NEW: Generate the HTML for type icons
             // This assumes your files are at "types/fire.png", "types/water.png", etc.
@@ -458,12 +489,7 @@
         }
         
         function renderPair() {
-            const leftEl = document.getElementById('leftName');
-            const rightEl = document.getElementById('rightName');
-            const infoEl = document.getElementById('pairInfo');
-            const undoBtn = document.getElementById('undoBtn');
-            const shuffleBtn = document.getElementById('shuffleBtn');
-            const bothWinBtn = document.getElementById('bothWinBtn');
+            const { leftName: leftEl, rightName: rightEl, pairInfo: infoEl, undoBtn, shuffleBtn, bothWinBtn } = dom;
             undoBtn.disabled = matchHistory.length === 0;
             shuffleBtn.disabled = pairIndex >= pairs.length;
 
@@ -486,13 +512,16 @@
             rightEl.disabled = !b;
             leftEl.setAttribute('aria-label', a ? `Choose ${labelOf(a)}` : 'No contestant');
             rightEl.setAttribute('aria-label', b ? `Choose ${labelOf(b)}` : 'No contestant');
-            if (bothWinBtn) bothWinBtn.disabled = !(a && b);
+            // Disable "Both Win" on the championship match (pairs.length === 1) so the
+            // bracket is guaranteed to converge on a single champion instead of looping
+            // the same two contestants into the next round forever.
+            if (bothWinBtn) bothWinBtn.disabled = !(a && b) || pairs.length === 1;
 
             infoEl.textContent = `Round ${currentRound} — Match ${pairIndex + 1} of ${pairs.length}`;
         }
         
         function renderHistory() {
-            const host = document.getElementById('historyList');
+            const host = dom.historyList;
             if (!host) return;
             
             if (!Array.isArray(matchHistory) || matchHistory.length === 0) {
@@ -528,14 +557,12 @@
         
         // Champion panel helpers
         function clearChampion() {
-            const panel = document.getElementById('championPanel');
-            const card  = document.getElementById('championCard');
+            const { championPanel: panel, championCard: card } = dom;
             if (panel) panel.style.display = 'none';
             if (card) card.innerHTML = '';
         }
         function showChampion(entry) {
-            const panel = document.getElementById('championPanel');
-            const card  = document.getElementById('championCard');
+            const { championPanel: panel, championCard: card } = dom;
             if (!panel || !card) return;
             card.innerHTML = cardHTML(entry);
             panel.style.display = '';
@@ -548,7 +575,7 @@
         }
         
         function selectedRegions() {
-            const sel = document.getElementById('regionSelect');
+            const sel = dom.regionSelect;
             if (!sel) return [];
             const v = sel.value || '';
             return v ? [v.toLowerCase()] : [];
@@ -618,7 +645,7 @@
         }
         
         function updateFilterCount() {
-            const el = document.getElementById('filterCount');
+            const el = dom.filterCount;
             if (!el) return;
             const sample = applyFilters(pokemonData, currentFilters);
             el.textContent = `Matches: ${sample.length} / ${pokemonData.length}`;
@@ -681,11 +708,10 @@
             if (pairIndex >= pairs.length) {
                 if (winnersThisRound.length === 1) {
                     const champ = winnersThisRound[0];
-                    const infoEl = document.getElementById('pairInfo');
                     const champName = labelOf(champ);
-                    infoEl.textContent = `Tournament complete — ${champName} wins!`;
-                    document.getElementById('leftName').textContent = '';
-                    document.getElementById('rightName').textContent = '';
+                    dom.pairInfo.textContent = `Tournament complete — ${champName} wins!`;
+                    dom.leftName.textContent = '';
+                    dom.rightName.textContent = '';
                     showChampion(champ);
                     return;
                 }
@@ -730,10 +756,15 @@
                     matchHistory.splice(lastIdx,1);
                 }
                 
-                winnersThisRound = matchHistory.filter(m => m.round === prevRound)
+                // NOTE: winnersThisRound can hold MORE entries than matches played
+                // whenever a "both win" match contributed two winners from one match,
+                // so pairIndex (which tracks matches, not winners) must be derived
+                // from the match count, not winnersThisRound.length.
+                const prevRoundMatches = matchHistory.filter(m => m.round === prevRound);
+                winnersThisRound = prevRoundMatches
                     .flatMap(m => Array.isArray(m.winner_obj) ? m.winner_obj : [m.winner_obj])
                     .filter(Boolean);
-                pairIndex = winnersThisRound.length;
+                pairIndex = prevRoundMatches.length;
                 renderPair();
                 renderHistory();
                 return;
@@ -767,14 +798,13 @@
             clearChampion();
             
             workingList = applyFilters(pokemonData, currentFilters);
-            
+
             if (!workingList.length) {
-                document.getElementById('filterCount').textContent = "No Pokemon match the current filters.";
+                if (dom.filterCount) dom.filterCount.textContent = "No Pokemon match the current filters.";
                 return;
             }
             shuffle(workingList);
-            const infoEl = document.getElementById('pairInfo');
-            if (infoEl) infoEl.textContent = '';
+            if (dom.pairInfo) dom.pairInfo.textContent = '';
             
             pairs = buildPairs(workingList);
             roundPairs.set(currentRound, pairs.slice());
@@ -783,8 +813,18 @@
         }
         
         document.addEventListener('DOMContentLoaded', () => {
+            // Populate the shared dom{} cache once, then wire up the buttons that
+            // use it (previously each got its own getElementById call at parse time).
+            cacheDom();
+            dom.startBtn.addEventListener('click', startBracket);
+            dom.undoBtn.addEventListener('click', undoLast);
+            dom.shuffleBtn.addEventListener('click', shuffleRemaining);
+            dom.leftName.addEventListener('click', () => pickWinner('left'));
+            dom.rightName.addEventListener('click', () => pickWinner('right'));
+            dom.bothWinBtn.addEventListener('click', () => pickWinner('both'));
+
             const $ = (id) => document.getElementById(id);
-            
+
             // Cache controls
             const filtersHost   = $('filters');
             const genSelect     = $('genSelect');
@@ -869,16 +909,10 @@
                     autoShuffleRounds = !!autoShuffleChk.checked;
                 });
             }
+
+            loadData();
         });
-        
-        document.getElementById('startBtn').addEventListener('click', startBracket);
-        document.getElementById('undoBtn').addEventListener('click', undoLast);
-        document.getElementById('shuffleBtn').addEventListener('click', shuffleRemaining);
-        document.getElementById('leftName').addEventListener('click', () => pickWinner('left'));
-        document.getElementById('rightName').addEventListener('click', () => pickWinner('right'));
-        document.getElementById('bothWinBtn').addEventListener('click', () => pickWinner('both'));
-        window.addEventListener('DOMContentLoaded', loadData);
-        
+
         //keyboard shortcuts
         window.addEventListener('keydown', (e) => {
             const tag = (document.activeElement && document.activeElement.tagName) ? document.activeElement.tagName.toLowerCase() : '';
