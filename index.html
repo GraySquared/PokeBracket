@@ -140,6 +140,8 @@
                                 
                                 .vs{display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:800}
                                 .vs::before{content:"VS";display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+                                .vsCol{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+                                #bothWinBtn{font-size:11px;padding:6px 8px;white-space:nowrap}
                                 
                                 .panel{margin-top:16px}
                                 
@@ -187,7 +189,7 @@
                                   /* Stack the match area vertically */
                                   #match.card{grid-template-columns:1fr;gap:10px}
                                   #leftName{order:1}
-                                  .vs{order:2;margin:-2px auto 4px}
+                                  .vsCol{order:2;margin:-2px auto 4px}
                                   #rightName{order:3}
                                   .kbd-hint{font-size:11px}
                                 }
@@ -295,13 +297,17 @@
             </div>
             <div class="kbd-hint muted">Shortcuts:
                 <span class="kbd">←</span>/<span class="kbd">→</span> to pick,
+                <span class="kbd">B</span> for both win,
                 <span class="kbd">U</span> to undo,
                 <span class="kbd">S</span> to shuffle
             </div>
-            
+
             <div id="match" class="card">
                 <button id="leftName"  class="choice-card" type="button"></button>
-                <div class="vs"></div>
+                <div class="vsCol">
+                    <div class="vs"></div>
+                    <button id="bothWinBtn" class="btn secondary" type="button">Both Win</button>
+                </div>
                 <button id="rightName" class="choice-card" type="button"></button>
             </div>
             <div id="championPanel" class="card panel" style="display:none">
@@ -457,9 +463,10 @@
             const infoEl = document.getElementById('pairInfo');
             const undoBtn = document.getElementById('undoBtn');
             const shuffleBtn = document.getElementById('shuffleBtn');
+            const bothWinBtn = document.getElementById('bothWinBtn');
             undoBtn.disabled = matchHistory.length === 0;
             shuffleBtn.disabled = pairIndex >= pairs.length;
-            
+
             if (pairIndex >= pairs.length) {
                 leftEl.innerHTML = '';
                 rightEl.innerHTML = '';
@@ -468,9 +475,10 @@
                 rightEl.disabled = true;
                 leftEl.setAttribute('aria-label', '');
                 rightEl.setAttribute('aria-label', '');
+                if (bothWinBtn) bothWinBtn.disabled = true;
                 return;
             }
-            
+
             const [a,b] = pairs[pairIndex];
             leftEl.innerHTML = a ? cardHTML(a) : '';
             rightEl.innerHTML = b ? cardHTML(b) : '';
@@ -478,7 +486,8 @@
             rightEl.disabled = !b;
             leftEl.setAttribute('aria-label', a ? `Choose ${labelOf(a)}` : 'No contestant');
             rightEl.setAttribute('aria-label', b ? `Choose ${labelOf(b)}` : 'No contestant');
-            
+            if (bothWinBtn) bothWinBtn.disabled = !(a && b);
+
             infoEl.textContent = `Round ${currentRound} — Match ${pairIndex + 1} of ${pairs.length}`;
         }
         
@@ -636,11 +645,14 @@
         }
         
         function recordMatch(round, a, b, winner) {
+            const winnerLabel = Array.isArray(winner)
+                ? 'Both advance'
+                : (typeof winner === 'object' ? (winner.variety || winner.species || String(winner)) : String(winner));
             matchHistory.push({
                 round,
                 a: (typeof a === 'object' ? (a.variety || a.species || String(a)) : String(a)),
                 b: (b ? (typeof b === 'object' ? (b.variety || b.species || String(b)) : String(b)) : null),
-                winner: (typeof winner === 'object' ? (winner.variety || winner.species || String(winner)) : String(winner)), winner_obj: winner
+                winner: winnerLabel, winner_obj: winner
             });
             renderHistory();
         }
@@ -648,17 +660,23 @@
         //bracket core logic
         function pickWinner(side) {
             if (pairIndex >= pairs.length) return;
-            
+
             const [a,b] = pairs[pairIndex];
-            let winner = a;
-            
-            if (b && side === 'right') {
-                winner = b;
+
+            if (side === 'both') {
+                if (!b) return; // nothing to advance both of on a bye
+                winnersThisRound.push(a, b);
+                recordMatch(currentRound, a, b, [a, b]);
+                pairIndex++;
+            } else {
+                let winner = a;
+                if (b && side === 'right') {
+                    winner = b;
+                }
+                winnersThisRound.push(winner);
+                recordMatch(currentRound, a, b, winner);
+                pairIndex++;
             }
-            
-            winnersThisRound.push(winner);
-            recordMatch(currentRound, a, b, winner);
-            pairIndex++;
             
             if (pairIndex >= pairs.length) {
                 if (winnersThisRound.length === 1) {
@@ -688,8 +706,11 @@
         function undoLast() {
             if (pairIndex > 0) {
                 pairIndex--;
-                matchHistory.pop();
-                if (winnersThisRound.length > 0) winnersThisRound.pop();
+                const last = matchHistory.pop();
+                const popCount = (last && Array.isArray(last.winner_obj)) ? last.winner_obj.length : 1;
+                for (let i = 0; i < popCount; i++) {
+                    if (winnersThisRound.length > 0) winnersThisRound.pop();
+                }
                 renderPair();
                 renderHistory();
                 return
@@ -709,7 +730,9 @@
                     matchHistory.splice(lastIdx,1);
                 }
                 
-                winnersThisRound = matchHistory.filter(m => m.round === prevRound).map(m => m.winner_obj).filter(Boolean);
+                winnersThisRound = matchHistory.filter(m => m.round === prevRound)
+                    .flatMap(m => Array.isArray(m.winner_obj) ? m.winner_obj : [m.winner_obj])
+                    .filter(Boolean);
                 pairIndex = winnersThisRound.length;
                 renderPair();
                 renderHistory();
@@ -853,6 +876,7 @@
         document.getElementById('shuffleBtn').addEventListener('click', shuffleRemaining);
         document.getElementById('leftName').addEventListener('click', () => pickWinner('left'));
         document.getElementById('rightName').addEventListener('click', () => pickWinner('right'));
+        document.getElementById('bothWinBtn').addEventListener('click', () => pickWinner('both'));
         window.addEventListener('DOMContentLoaded', loadData);
         
         //keyboard shortcuts
@@ -870,6 +894,11 @@
                 case 'ArrowRight':
                 e.preventDefault();
                 if (Array.isArray(pairs) && pairIndex < pairs.length) pickWinner('right');
+                break;
+                case 'b':
+                case 'B':
+                e.preventDefault();
+                if (Array.isArray(pairs) && pairIndex < pairs.length) pickWinner('both');
                 break;
                 case 'u':
                 case 'U':
