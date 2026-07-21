@@ -204,18 +204,28 @@
                                 /* 6. Type-colored border — solid ring for single-type Pokémon, a diagonal
                                    half-and-half split when there's a second type. Colors come from the
                                    --type-accent/--type-accent2 custom properties set inline per-card in JS
-                                   (see cardHTML), which point at the --type-* swatches defined in :root. */
+                                   (see cardHTML), which point at the --type-* swatches defined in :root.
+                                   The ring itself is drawn by ::before using a mask-composite cutout so it
+                                   stays a thin border (not a filled background) while still supporting a
+                                   rounded corner + diagonal gradient, which a plain `border` can't do and
+                                   `border-image` would do only by discarding border-radius. */
                                 .poke-card{
                                     border-radius:12px;
-                                    border:2px solid transparent;
-                                    background-image:
-                                        linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)),
-                                        linear-gradient(135deg, var(--type-accent, var(--line)) 50%, var(--type-accent2, var(--type-accent, var(--line))) 50%);
-                                    background-origin:border-box;
-                                    background-clip:padding-box, border-box;
                                     /* Fallback glow for browsers without color-mix() support */
-                                    box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), 0 0 18px 2px rgba(255,255,255,.06);
-                                    box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), 0 0 22px 3px color-mix(in srgb, var(--type-accent, var(--line)) 45%, transparent);
+                                    box-shadow:0 0 18px 2px rgba(255,255,255,.06);
+                                    box-shadow:0 0 20px 3px color-mix(in srgb, var(--type-accent, var(--line)) 40%, transparent);
+                                }
+                                .poke-card::before{
+                                    content:"";
+                                    position:absolute;
+                                    inset:0;
+                                    border-radius:12px;
+                                    padding:2px;
+                                    background: linear-gradient(135deg, var(--type-accent, var(--line)) 50%, var(--type-accent2, var(--type-accent, var(--line))) 50%);
+                                    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                                    -webkit-mask-composite: xor;
+                                    mask-composite: exclude;
+                                    pointer-events:none;
                                 }
 
                                 /* --- NEW CARD LAYOUT END --- */
