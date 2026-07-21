@@ -9,20 +9,108 @@
                     <meta property="og:title" content="Pokémon Bracket" />
                     <meta name="Generator" content="Cocoa HTML Writer">
                         <meta name="CocoaVersion" content="2575.7">
+                            <link rel="preconnect" href="https://fonts.googleapis.com">
+                            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                            <link href="https://fonts.googleapis.com/css2?family=Titan+One&display=swap" rel="stylesheet">
                             <style type="text/css">
                                 :root{
-                                    --bg:#0b0f1a; --bg2:#0d1430; --panel:#111827; --panel2:#0f172a; --text:#eaf0ff; --muted:#a7b0c3; --line:rgba(255,255,255,.12);
-                                    --accent:#8bb5ff; --accent2:#94f7c3; --warn:#f59e0b; --ok:#22c55e; --danger:#ef4444;
+                                    --bg:#0a0a10; --bg2:#1a0a0f; --panel:#15121a; --panel2:#130f18;
+                                    --text:#f5f1ec; --muted:#a99aa3; --line:rgba(255,255,255,.12);
+
+                                    --pokedex-red:#e3350d; --pokedex-red-dark:#a8240a; --pokedex-red-light:#ff5b3d;
+                                    --gold:#ffcf5c; --gold-dark:#b8860b;
+                                    --chrome:#c7cad3;
+
+                                    --accent:var(--pokedex-red); --accent2:var(--gold);
+                                    --warn:#f59e0b; --ok:#3ddc84; --danger:#ef4444;
+
+                                    --type-normal:#A8A878; --type-fire:#F08030; --type-water:#6890F0; --type-electric:#F0C020;
+                                    --type-grass:#78C850; --type-ice:#98D8D8; --type-fighting:#C03028; --type-poison:#A040A0;
+                                    --type-ground:#E0C068; --type-flying:#A890F0; --type-psychic:#F85888; --type-bug:#A8B820;
+                                    --type-rock:#B8A038; --type-ghost:#705898; --type-dragon:#7038F8; --type-dark:#8a7568;
+                                    --type-steel:#B8B8D0; --type-fairy:#EE99AC;
+
+                                    --display-font:'Titan One', system-ui, -apple-system, sans-serif;
                                 }
                                 html,body{height:100%}
-                                html{-webkit-text-size-adjust:100%;min-height:100%;background:linear-gradient(180deg,var(--bg),var(--bg2));background-attachment:fixed}
+                                html{-webkit-text-size-adjust:100%;min-height:100%;
+                                    background:
+                                        radial-gradient(circle at 50% -10%, rgba(227,53,13,.22), transparent 55%),
+                                        radial-gradient(circle at 100% 100%, rgba(255,207,92,.07), transparent 45%),
+                                        linear-gradient(180deg,var(--bg),var(--bg2));
+                                    background-attachment:fixed;
+                                }
                                 body{margin:0;background:transparent;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;font-size:clamp(14px,1.8vw,16px)}
                                 
                                 .wrap{max-width:1100px;margin:24px auto;padding:16px}
-                                .section-title{margin:8px 0 6px;font-weight:800;letter-spacing:.2px}
-                                
-                                .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
-                                
+
+                                /* Pokédex-style header banner */
+                                .pokedex-header{
+                                    display:flex;align-items:center;gap:14px;
+                                    background:linear-gradient(155deg,var(--pokedex-red-light),var(--pokedex-red) 55%,var(--pokedex-red-dark));
+                                    border:1px solid rgba(0,0,0,.45);
+                                    border-radius:18px;
+                                    padding:14px 18px;
+                                    margin-top:10px;
+                                    box-shadow:0 14px 34px rgba(227,53,13,.32), inset 0 2px 0 rgba(255,255,255,.28), inset 0 -4px 0 rgba(0,0,0,.28);
+                                    position:relative;
+                                    overflow:hidden;
+                                }
+                                .pokedex-header::after{
+                                    content:"";
+                                    position:absolute; inset:0;
+                                    background:linear-gradient(115deg, rgba(255,255,255,.18) 0%, transparent 30%);
+                                    pointer-events:none;
+                                }
+                                .pokedex-lights{display:flex;align-items:center;gap:8px;flex-shrink:0}
+                                .light{border-radius:50%;display:inline-block;box-shadow:inset 0 -2px 3px rgba(0,0,0,.45), 0 0 8px rgba(255,255,255,.4)}
+                                .light-main{width:28px;height:28px;background:radial-gradient(circle at 35% 30%, #dff3ff, #4aa3ff 55%, #16467f);border:3px solid rgba(255,255,255,.85)}
+                                .light-red{width:9px;height:9px;background:radial-gradient(circle at 35% 30%,#fff,#ff5b5b 55%,#8a1c07);border:1px solid rgba(0,0,0,.3)}
+                                .light-yellow{width:9px;height:9px;background:radial-gradient(circle at 35% 30%,#fff,#ffe066 55%,#a67c00);border:1px solid rgba(0,0,0,.3)}
+                                .light-green{width:9px;height:9px;background:radial-gradient(circle at 35% 30%,#fff,#7CFC7C 55%,#1c6b1c);border:1px solid rgba(0,0,0,.3)}
+                                .app-title{
+                                    font-family:var(--display-font);
+                                    color:#fff;
+                                    font-size:clamp(20px,3.6vw,30px);
+                                    letter-spacing:.5px;
+                                    text-shadow:0 2px 0 rgba(0,0,0,.4), 0 0 20px rgba(255,255,255,.2);
+                                    margin:0;
+                                    display:flex;align-items:center;gap:10px;
+                                }
+                                .pokeball-icon{
+                                    width:26px;height:26px;flex-shrink:0;border-radius:50%;
+                                    background:
+                                        radial-gradient(circle at 50% 50%, #fff 0 16%, #111 16% 21%, transparent 21%),
+                                        linear-gradient(#ff5b3d 0 48%, #111 48% 52%, #fff 52% 100%);
+                                    border:2px solid #111;
+                                    box-shadow:0 2px 6px rgba(0,0,0,.4);
+                                }
+
+                                .section-title{
+                                    margin:8px 0 10px;
+                                    font-family:var(--display-font);
+                                    font-weight:400;
+                                    letter-spacing:.3px;
+                                    font-size:15px;
+                                    display:flex;align-items:center;gap:8px;
+                                }
+                                .section-title::before{
+                                    content:"";
+                                    width:8px;height:8px;border-radius:2px;
+                                    background:var(--pokedex-red);
+                                    box-shadow:0 0 8px rgba(227,53,13,.7);
+                                    flex-shrink:0;
+                                }
+
+                                .card{
+                                    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015)) , var(--panel);
+                                    border:1px solid var(--line);
+                                    border-top:3px solid var(--pokedex-red);
+                                    border-radius:16px;
+                                    padding:14px;
+                                    box-shadow:0 14px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+                                }
+
                                 #filters.card{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
                                 
                                 .label{font-weight:600}
@@ -117,12 +205,56 @@
                                     object-fit: contain;
                                 }
 
+                                /* 6. Per-type glow ring — subtle tint matching the Pokémon's primary type */
+                                .poke-card[data-type]{
+                                    border-radius:12px;
+                                    border:2px solid var(--type-accent, var(--line));
+                                    box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), 0 0 22px 2px var(--type-glow, transparent);
+                                }
+                                .poke-card[data-type="normal"]{--type-accent:var(--type-normal);--type-glow:rgba(168,168,120,.35)}
+                                .poke-card[data-type="fire"]{--type-accent:var(--type-fire);--type-glow:rgba(240,128,48,.4)}
+                                .poke-card[data-type="water"]{--type-accent:var(--type-water);--type-glow:rgba(104,144,240,.4)}
+                                .poke-card[data-type="electric"]{--type-accent:var(--type-electric);--type-glow:rgba(240,192,32,.4)}
+                                .poke-card[data-type="grass"]{--type-accent:var(--type-grass);--type-glow:rgba(120,200,80,.4)}
+                                .poke-card[data-type="ice"]{--type-accent:var(--type-ice);--type-glow:rgba(152,216,216,.4)}
+                                .poke-card[data-type="fighting"]{--type-accent:var(--type-fighting);--type-glow:rgba(192,48,40,.4)}
+                                .poke-card[data-type="poison"]{--type-accent:var(--type-poison);--type-glow:rgba(160,64,160,.4)}
+                                .poke-card[data-type="ground"]{--type-accent:var(--type-ground);--type-glow:rgba(224,192,104,.4)}
+                                .poke-card[data-type="flying"]{--type-accent:var(--type-flying);--type-glow:rgba(168,144,240,.4)}
+                                .poke-card[data-type="psychic"]{--type-accent:var(--type-psychic);--type-glow:rgba(248,88,136,.4)}
+                                .poke-card[data-type="bug"]{--type-accent:var(--type-bug);--type-glow:rgba(168,184,32,.4)}
+                                .poke-card[data-type="rock"]{--type-accent:var(--type-rock);--type-glow:rgba(184,160,56,.4)}
+                                .poke-card[data-type="ghost"]{--type-accent:var(--type-ghost);--type-glow:rgba(112,88,152,.4)}
+                                .poke-card[data-type="dragon"]{--type-accent:var(--type-dragon);--type-glow:rgba(112,56,248,.4)}
+                                .poke-card[data-type="dark"]{--type-accent:var(--type-dark);--type-glow:rgba(138,117,104,.4)}
+                                .poke-card[data-type="steel"]{--type-accent:var(--type-steel);--type-glow:rgba(184,184,208,.4)}
+                                .poke-card[data-type="fairy"]{--type-accent:var(--type-fairy);--type-glow:rgba(238,153,172,.4)}
+
                                 /* --- NEW CARD LAYOUT END --- */
                                 
-                                .btn{appearance:none;border:none;background:var(--accent);color:#051127;font-weight:800;padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .15s ease, box-shadow .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.28)}
-                                .btn:hover{transform:translateY(-1px)}
-                                .btn:disabled{opacity:.6;cursor:not-allowed;filter:grayscale(.2)}
-                                .btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+                                .btn{
+                                    appearance:none;border:1px solid rgba(0,0,0,.35);
+                                    background:linear-gradient(180deg,var(--pokedex-red-light),var(--pokedex-red) 55%, var(--pokedex-red-dark));
+                                    color:#fff;
+                                    font-family:var(--display-font);font-weight:400;letter-spacing:.3px;
+                                    padding:10px 16px;border-radius:999px;cursor:pointer;
+                                    transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
+                                    box-shadow:0 6px 16px rgba(227,53,13,.35), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.25);
+                                }
+                                .btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
+                                .btn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.35)}
+                                .btn.secondary{
+                                    background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+                                    color:var(--text);
+                                    border:1px solid var(--chrome);
+                                    box-shadow:0 2px 8px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
+                                }
+                                .btn.special{
+                                    background:linear-gradient(180deg,#ffe28a,var(--gold) 55%, var(--gold-dark));
+                                    color:#3a2900;
+                                    border:1px solid rgba(0,0,0,.35);
+                                    box-shadow:0 6px 16px rgba(255,207,92,.35), inset 0 1px 0 rgba(255,255,255,.5), inset 0 -3px 0 rgba(0,0,0,.2);
+                                }
                                 .btn, .choice-card{touch-action:manipulation}
                                 
                                 .controls-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
@@ -133,22 +265,45 @@
                                     width:100%;
                                     max-width:320px;
                                     margin:0 auto;
+                                    border-color:var(--gold);
+                                    box-shadow:0 0 0 2px rgba(255,207,92,.35), 0 0 30px rgba(255,207,92,.25);
                                 }
                                 #championPanel {
                                     overflow:hidden;
+                                    border-top-color:var(--gold);
+                                    box-shadow:0 14px 34px rgba(255,207,92,.25), inset 0 1px 0 rgba(255,255,255,.05);
                                 }
-                                
-                                .vs{display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:800}
-                                .vs::before{content:"VS";display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+                                #championPanel .section-title::before{background:var(--gold);box-shadow:0 0 8px rgba(255,207,92,.8)}
+                                #championPanel .section-title::after{content:"🏆";margin-left:2px}
+
+                                /* Poké Ball "VS" divider */
+                                .vs{display:flex;align-items:center;justify-content:center}
+                                .vs::before{
+                                    content:"";
+                                    display:block;
+                                    width:44px;height:44px;border-radius:999px;
+                                    background:
+                                        radial-gradient(circle at 50% 50%, #fff 0 16%, #111 16% 21%, transparent 21%),
+                                        linear-gradient(#e3350d 0 48%, #111 48% 52%, #fff 52% 100%);
+                                    border:2px solid #111;
+                                    box-shadow:0 4px 12px rgba(0,0,0,.45);
+                                }
+                                .vs-label{
+                                    font-family:var(--display-font);
+                                    font-size:11px;
+                                    color:var(--pokedex-red-light);
+                                    letter-spacing:1px;
+                                    text-shadow:0 0 6px rgba(227,53,13,.6);
+                                }
                                 .vsCol{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
                                 #bothWinBtn{font-size:11px;padding:6px 8px;white-space:nowrap}
                                 
                                 .panel{margin-top:16px}
                                 
-                                #historyList{border:1px solid var(--line);border-radius:12px;padding:10px;max-height:320px;overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
+                                #historyList{border:1px solid var(--line);border-radius:14px;padding:10px;max-height:320px;overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
                                 #historyPanel.card h3,#championPanel.card h3{margin:8px 0 8px}
                                 .history-row{display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
-                                .history-row .winner{color:var(--ok);font-weight:800;text-align:right}
+                                .history-row .winner{color:var(--gold);font-weight:800;text-align:right;text-shadow:0 0 8px rgba(255,207,92,.35)}
                                 .history-row > div{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
                                 .history-row .vs{justify-self:center}
                                 /* Explicit placement so VS never gets pushed off row */
@@ -164,11 +319,12 @@
                                 
                                 select, input[type="checkbox"]{accent-color:var(--accent)}
                                 select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
-                                
+                                select:focus, input:focus-visible, .btn:focus-visible{outline:2px solid var(--pokedex-red);outline-offset:2px}
+
                                 .badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-                                
+
                                 .kbd-hint{margin:4px 2px 0; font-size:12px}
-                                .kbd{display:inline-block; padding:1px 6px; border-radius:6px; background:rgba(255,255,255,.08); border:1px solid var(--line); font-weight:800}
+                                .kbd{display:inline-block; padding:2px 7px; border-radius:6px; background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03)); border:1px solid var(--chrome); font-weight:800; box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 2px 4px rgba(0,0,0,.3)}
                                 
                                 @media (max-width:800px){
                                     .wrap{padding:12px}
@@ -203,6 +359,15 @@
                         </head>
     <body>
         <div id="ui" class="wrap">
+            <div class="pokedex-header">
+                <div class="pokedex-lights" aria-hidden="true">
+                    <span class="light light-main"></span>
+                    <span class="light light-red"></span>
+                    <span class="light light-yellow"></span>
+                    <span class="light light-green"></span>
+                </div>
+                <h1 class="app-title"><span class="pokeball-icon" aria-hidden="true"></span>Pokémon Bracket</h1>
+            </div>
             <div id="filters" class="card" style="margin-top:10px">
                 <h3 class="section-title">Filters</h3>
                 <div id="exRow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -280,7 +445,7 @@
                 </div>
                 
                 <div style="display:flex;flex-direction:column;gap:6px;margin-left:0">
-                    <span id="filterCount" style="color:#666"></span>
+                    <span id="filterCount" class="muted"></span>
                 </div>
             </div>
             
@@ -306,7 +471,8 @@
                 <button id="leftName"  class="choice-card" type="button"></button>
                 <div class="vsCol">
                     <div class="vs"></div>
-                    <button id="bothWinBtn" class="btn secondary" type="button">Both Win</button>
+                    <span class="vs-label">VS</span>
+                    <button id="bothWinBtn" class="btn special" type="button">Both Win</button>
                 </div>
                 <button id="rightName" class="choice-card" type="button"></button>
             </div>
@@ -481,7 +647,11 @@
                 </div>`;
             }
 
-            return `<div class="poke-card">
+            // Primary type drives the card's glow/border color (see .poke-card[data-type] in CSS)
+            const primaryType = (Array.isArray(r.types) && r.types[0]) ? String(r.types[0]).toLowerCase() : '';
+            const typeAttr = primaryType ? ` data-type="${primaryType}"` : '';
+
+            return `<div class="poke-card"${typeAttr}>
                 ${img}
                 <div class="poke-name">${name}</div>
                 ${typeIcons}
@@ -525,7 +695,7 @@
             if (!host) return;
             
             if (!Array.isArray(matchHistory) || matchHistory.length === 0) {
-                host.innerHTML = '<div style="color:#777">No matches yet.</div>';
+                host.innerHTML = '<div class="muted">No matches yet.</div>';
                 return;
             }
             
@@ -538,7 +708,7 @@
             let html = '';
             const rounds = Array.from(byRound.keys()).sort((a,b) => b - a);
             for (const r of rounds) {
-                html += `<div style="margin:6px 0 4px;font-weight:700;color:#999">Round ${r}</div>`;
+                html += `<div class="muted" style="margin:6px 0 4px;font-weight:800;font-family:var(--display-font);letter-spacing:.3px">Round ${r}</div>`;
                 const rows = byRound.get(r).slice().reverse();
                 for (const m of rows) {
                     const a = displayName(m.a);
