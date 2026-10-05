@@ -11,7 +11,7 @@
                         <meta name="CocoaVersion" content="2575.7">
                             <link rel="preconnect" href="https://fonts.googleapis.com">
                             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                            <link href="https://fonts.googleapis.com/css2?family=Titan+One&display=swap" rel="stylesheet">
+                            <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@700;800&display=swap" rel="stylesheet">
                             <style type="text/css">
                                 :root{
                                     --bg:#0a0a10; --bg2:#1a0a0f; --panel:#15121a; --panel2:#130f18;
@@ -30,7 +30,7 @@
                                     --type-rock:#AFA981; --type-ghost:#704170; --type-dragon:#5061E1; --type-dark:#50413F;
                                     --type-steel:#60A1B8; --type-fairy:#F170F1;
 
-                                    --display-font:'Titan One', system-ui, -apple-system, sans-serif;
+                                    --display-font:'Rubik', system-ui, -apple-system, sans-serif;
                                 }
                                 html,body{height:100%}
                                 html{-webkit-text-size-adjust:100%;min-height:100%;
@@ -70,6 +70,7 @@
                                 .light-green{width:9px;height:9px;background:radial-gradient(circle at 35% 30%,#fff,#7CFC7C 55%,#1c6b1c);border:1px solid rgba(0,0,0,.3)}
                                 .app-title{
                                     font-family:var(--display-font);
+                                    font-weight:800;
                                     color:#fff;
                                     font-size:clamp(20px,3.6vw,30px);
                                     letter-spacing:.5px;
@@ -85,7 +86,7 @@
                                 .section-title{
                                     margin:8px 0 10px;
                                     font-family:var(--display-font);
-                                    font-weight:400;
+                                    font-weight:800;
                                     letter-spacing:.3px;
                                     font-size:15px;
                                     display:flex;align-items:center;gap:8px;
@@ -233,7 +234,7 @@
                                     appearance:none;border:1px solid rgba(0,0,0,.35);
                                     background:linear-gradient(180deg,var(--pokedex-red-light),var(--pokedex-red) 55%, var(--pokedex-red-dark));
                                     color:#fff;
-                                    font-family:var(--display-font);font-weight:400;letter-spacing:.3px;
+                                    font-family:var(--display-font);font-weight:700;letter-spacing:.3px;
                                     padding:10px 16px;border-radius:999px;cursor:pointer;
                                     transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
                                     box-shadow:0 3px 8px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.25);
@@ -284,6 +285,7 @@
                                 }
                                 .vs-label{
                                     font-family:var(--display-font);
+                                    font-weight:800;
                                     font-size:11px;
                                     color:var(--pokedex-red-light);
                                     letter-spacing:1px;
@@ -363,13 +365,6 @@
             </div>
             <div id="filters" class="card" style="margin-top:10px">
                 <h3 class="section-title">Filters</h3>
-                <div id="exRow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-                    <span style="font-weight:600">Exclude:</span>
-                    <label class="check"><input type="checkbox" id="exMega" checked> Mega</label>
-                    <label class="check"><input type="checkbox" id="exGmax" checked> Gmax</label>
-                    <label class="check"><input type="checkbox" id="exCostume" checked> Costumes</label>
-                    <label class="check"><input type="checkbox" id="exAltForms" checked> Alt forms</label>
-                </div>
                 <div id="genRow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                     <label for="genSelect" class="label">Generation:</label>
                     <select id="genSelect">
@@ -415,12 +410,12 @@
                         </div>
                     </div>
                     <div style="margin-top:8px">
-                        <label class="check" style="gap:8px"><input type="checkbox" id="typesModeAll">Strict Typing</label>
+                        <label class="check" style="gap:8px"><input type="checkbox" id="typesModeAll">Exact Typing Only</label>
                     </div>
                 </div>
                 
                 <div id="specialRow" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-                    <span style="font-weight:600">Only include:</span>
+                    <span style="font-weight:600">Only Include:</span>
                     <label class="check"><input type="checkbox" id="onlyLegendary"> Legendary</label>
                     <label class="check"><input type="checkbox" id="onlyMythical"> Mythical</label>
                     <label class="check"><input type="checkbox" id="onlyMega"> Mega</label>
@@ -437,7 +432,17 @@
                     </label>
                 </div>
                 <div class="muted" style="font-size:12px;margin-top:-4px">
-                    Checking any of these makes a special bracket of <em>only</em> those Pokémon (for example, Starters = a bracket of just starters). Leave all unchecked to include everyone; check several to combine them.
+                    Checking any of these makes a special bracket of <em>only</em> those Pokémon (for example, Starters = a bracket of just starters). Leave all unchecked to include everyone.
+                </div>
+                <div id="exRow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                    <span style="font-weight:600">Exclude:</span>
+                    <label class="check"><input type="checkbox" id="exMega" checked> Mega</label>
+                    <label class="check"><input type="checkbox" id="exGmax" checked> Gmax</label>
+                    <label class="check"><input type="checkbox" id="exCostume" checked> Costumes</label>
+                    <label class="check"><input type="checkbox" id="exAltForms" checked> Alt forms</label>
+                </div>
+                <div class="muted" style="font-size:12px;margin-top:-4px">
+                    Removes Megas, GMax, Costumes, and Alt Forms (NOT Regional Forms)
                 </div>
 
                 <div style="display:flex;flex-direction:column;gap:6px;margin-left:0">
