@@ -73,7 +73,7 @@
                                     color:#fff;
                                     font-size:clamp(20px,3.6vw,30px);
                                     letter-spacing:.5px;
-                                    text-shadow:0 2px 0 rgba(0,0,0,.4), 0 0 20px rgba(255,255,255,.2);
+                                    text-shadow:0 2px 0 rgba(0,0,0,.4);
                                     margin:0;
                                     display:flex;align-items:center;gap:10px;
                                 }
@@ -94,7 +94,6 @@
                                     content:"";
                                     width:8px;height:8px;border-radius:2px;
                                     background:var(--pokedex-red);
-                                    box-shadow:0 0 8px rgba(227,53,13,.7);
                                     flex-shrink:0;
                                 }
 
@@ -237,7 +236,7 @@
                                     font-family:var(--display-font);font-weight:400;letter-spacing:.3px;
                                     padding:10px 16px;border-radius:999px;cursor:pointer;
                                     transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
-                                    box-shadow:0 6px 16px rgba(227,53,13,.35), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.25);
+                                    box-shadow:0 3px 8px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.25);
                                 }
                                 .btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
                                 .btn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.35)}
@@ -251,7 +250,7 @@
                                     background:linear-gradient(180deg,#ffe28a,var(--gold) 55%, var(--gold-dark));
                                     color:#3a2900;
                                     border:1px solid rgba(0,0,0,.35);
-                                    box-shadow:0 6px 16px rgba(255,207,92,.35), inset 0 1px 0 rgba(255,255,255,.5), inset 0 -3px 0 rgba(0,0,0,.2);
+                                    box-shadow:0 3px 8px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.5), inset 0 -3px 0 rgba(0,0,0,.2);
                                 }
                                 .btn, .choice-card{touch-action:manipulation}
                                 
@@ -271,7 +270,7 @@
                                     border-top-color:var(--gold);
                                     box-shadow:0 14px 34px rgba(255,207,92,.25), inset 0 1px 0 rgba(255,255,255,.05);
                                 }
-                                #championPanel .section-title::before{background:var(--gold);box-shadow:0 0 8px rgba(255,207,92,.8)}
+                                #championPanel .section-title::before{background:var(--gold)}
                                 #championPanel .section-title::after{content:"🏆";margin-left:2px}
 
                                 /* Poké Ball "VS" divider */
@@ -288,17 +287,16 @@
                                     font-size:11px;
                                     color:var(--pokedex-red-light);
                                     letter-spacing:1px;
-                                    text-shadow:0 0 6px rgba(227,53,13,.6);
                                 }
                                 .vsCol{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
-                                #bothWinBtn{font-size:11px;padding:6px 8px;white-space:nowrap}
+                                #bothWinBtn, #bothLoseBtn{font-size:11px;padding:6px 8px;white-space:nowrap}
                                 
                                 .panel{margin-top:16px}
                                 
                                 #historyList{border:1px solid var(--line);border-radius:14px;padding:10px;max-height:320px;overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
                                 #historyPanel.card h3,#championPanel.card h3{margin:8px 0 8px}
                                 .history-row{display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
-                                .history-row .winner{color:var(--gold);font-weight:800;text-align:right;text-shadow:0 0 8px rgba(255,207,92,.35)}
+                                .history-row .winner{color:var(--gold);font-weight:800;text-align:right}
                                 .history-row > div{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
                                 .history-row .vs{justify-self:center}
                                 /* Explicit placement so VS never gets pushed off row */
@@ -422,7 +420,7 @@
                 </div>
                 
                 <div id="specialRow" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-                    <span style="font-weight:600">Special:</span>
+                    <span style="font-weight:600">Only include:</span>
                     <label class="check"><input type="checkbox" id="onlyLegendary"> Legendary</label>
                     <label class="check"><input type="checkbox" id="onlyMythical"> Mythical</label>
                     <label class="check"><input type="checkbox" id="onlyMega"> Mega</label>
@@ -438,7 +436,10 @@
                         </select>
                     </label>
                 </div>
-                
+                <div class="muted" style="font-size:12px;margin-top:-4px">
+                    Checking any of these makes a special bracket of <em>only</em> those Pokémon (for example, Starters = a bracket of just starters). Leave all unchecked to include everyone; check several to combine them.
+                </div>
+
                 <div style="display:flex;flex-direction:column;gap:6px;margin-left:0">
                     <span id="filterCount" class="muted"></span>
                 </div>
@@ -458,6 +459,7 @@
             <div class="kbd-hint muted">Shortcuts:
                 <span class="kbd">←</span>/<span class="kbd">→</span> to pick,
                 <span class="kbd">B</span> for both win,
+                <span class="kbd">L</span> for both lose,
                 <span class="kbd">U</span> to undo,
                 <span class="kbd">S</span> to shuffle
             </div>
@@ -468,6 +470,7 @@
                     <div class="vs"></div>
                     <span class="vs-label">VS</span>
                     <button id="bothWinBtn" class="btn special" type="button">Both Win</button>
+                    <button id="bothLoseBtn" class="btn secondary" type="button">Both Lose</button>
                 </div>
                 <button id="rightName" class="choice-card" type="button"></button>
             </div>
@@ -544,6 +547,7 @@
             dom.undoBtn       = document.getElementById('undoBtn');
             dom.shuffleBtn    = document.getElementById('shuffleBtn');
             dom.bothWinBtn    = document.getElementById('bothWinBtn');
+            dom.bothLoseBtn   = document.getElementById('bothLoseBtn');
             dom.championPanel = document.getElementById('championPanel');
             dom.championCard  = document.getElementById('championCard');
             dom.historyList   = document.getElementById('historyList');
@@ -662,7 +666,7 @@
         }
         
         function renderPair() {
-            const { leftName: leftEl, rightName: rightEl, pairInfo: infoEl, undoBtn, shuffleBtn, bothWinBtn } = dom;
+            const { leftName: leftEl, rightName: rightEl, pairInfo: infoEl, undoBtn, shuffleBtn, bothWinBtn, bothLoseBtn } = dom;
             undoBtn.disabled = matchHistory.length === 0;
             shuffleBtn.disabled = pairIndex >= pairs.length;
 
@@ -675,6 +679,7 @@
                 leftEl.setAttribute('aria-label', '');
                 rightEl.setAttribute('aria-label', '');
                 if (bothWinBtn) bothWinBtn.disabled = true;
+                if (bothLoseBtn) bothLoseBtn.disabled = true;
                 return;
             }
 
@@ -689,6 +694,10 @@
             // bracket is guaranteed to converge on a single champion instead of looping
             // the same two contestants into the next round forever.
             if (bothWinBtn) bothWinBtn.disabled = !(a && b) || pairs.length === 1;
+            // "Both Lose" can't be used when it would leave the round with nobody advancing
+            // (i.e. on the last match of a round if nobody has advanced yet).
+            const wouldEmptyRound = pairIndex === pairs.length - 1 && winnersThisRound.length === 0;
+            if (bothLoseBtn) bothLoseBtn.disabled = !(a && b) || wouldEmptyRound;
 
             infoEl.textContent = `Round ${currentRound} — Match ${pairIndex + 1} of ${pairs.length}`;
         }
@@ -846,7 +855,7 @@
         
         function recordMatch(round, a, b, winner) {
             const winnerLabel = Array.isArray(winner)
-                ? 'Both advance'
+                ? (winner.length ? 'Both advance' : 'Both eliminated')
                 : (typeof winner === 'object' ? (winner.variety || winner.species || String(winner)) : String(winner));
             matchHistory.push({
                 round,
@@ -867,6 +876,11 @@
                 if (!b) return; // nothing to advance both of on a bye
                 winnersThisRound.push(a, b);
                 recordMatch(currentRound, a, b, [a, b]);
+                pairIndex++;
+            } else if (side === 'neither') {
+                // Guard mirrors the button state: never empty out a round.
+                if (!b || (pairIndex === pairs.length - 1 && winnersThisRound.length === 0)) return;
+                recordMatch(currentRound, a, b, []);
                 pairIndex++;
             } else {
                 let winner = a;
@@ -969,6 +983,11 @@
         }
 
         async function startBracket() {
+            // Starting over discards the current (auto-saved) bracket, so confirm first.
+            if (matchHistory.length > 0 &&
+                !confirm('Start a new bracket? Your current bracket progress will be lost.')) {
+                return;
+            }
             currentRound = 1;
             winnersThisRound = [];
             matchHistory = [];
@@ -1091,6 +1110,7 @@
             dom.leftName.addEventListener('click', () => pickWinner('left'));
             dom.rightName.addEventListener('click', () => pickWinner('right'));
             dom.bothWinBtn.addEventListener('click', () => pickWinner('both'));
+            dom.bothLoseBtn.addEventListener('click', () => pickWinner('neither'));
 
             const $ = (id) => document.getElementById(id);
 
@@ -1221,6 +1241,11 @@
                 case 'B':
                 e.preventDefault();
                 if (Array.isArray(pairs) && pairIndex < pairs.length) pickWinner('both');
+                break;
+                case 'l':
+                case 'L':
+                e.preventDefault();
+                if (Array.isArray(pairs) && pairIndex < pairs.length) pickWinner('neither');
                 break;
                 case 'u':
                 case 'U':
