@@ -286,12 +286,15 @@
                                 .vs-label{
                                     font-family:var(--display-font);
                                     font-weight:800;
-                                    font-size:11px;
+                                    font-size:clamp(26px,4vw,36px);
                                     color:var(--pokedex-red-light);
                                     letter-spacing:1px;
                                 }
-                                .vsCol{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
-                                #bothWinBtn, #bothLoseBtn{font-size:11px;padding:6px 8px;white-space:nowrap}
+                                .vsCol{display:flex;align-items:center;justify-content:center}
+                                /* Both Win / Both Lose sit in their own centered row under the two cards */
+                                .match-actions{grid-column:1 / -1;display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+                                #bothWinBtn, #bothLoseBtn{font-size:13px;padding:8px 18px;white-space:nowrap}
+                                #filters h2.section-title{font-size:22px;margin:4px 0 8px}
                                 
                                 .panel{margin-top:16px}
                                 
@@ -342,6 +345,7 @@
                                   #leftName{order:1}
                                   .vsCol{order:2;margin:-2px auto 4px}
                                   #rightName{order:3}
+                                  .match-actions{order:4}
                                   .kbd-hint{font-size:11px}
                                 }
 
@@ -364,7 +368,7 @@
                 <h1 class="app-title"><img class="pokeball-icon" src="pokeball.svg" alt="" aria-hidden="true">Pokémon Bracket</h1>
             </div>
             <div id="filters" class="card" style="margin-top:10px">
-                <h3 class="section-title">Filters</h3>
+                <h2 class="section-title">Filters</h2>
                 <div id="genRow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                     <label for="genSelect" class="label">Generation:</label>
                     <select id="genSelect">
@@ -383,6 +387,9 @@
                     <select id="regionSelect">
                         <option value="">All</option>
                     </select>
+                </div>
+                <div class="muted" style="font-size:12px;margin-top:-4px">
+                    Generation = introduced in that Gen, Region = appears in that region's dex
                 </div>
                 <div id="typeRow" style="display:flex;gap:10px;align-items:center;position:relative">
                     <label for="typeDropdownBtn" class="label">Types:</label>
@@ -432,7 +439,7 @@
                     </label>
                 </div>
                 <div class="muted" style="font-size:12px;margin-top:-4px">
-                    Checking any of these makes a special bracket of <em>only</em> those Pokémon (for example, Starters = a bracket of just starters). Leave all unchecked to include everyone.
+                    Checking these makes a special bracket of <em>only</em> those Pokémon (for example, Starters = a bracket of just starters)
                 </div>
                 <div id="exRow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                     <span style="font-weight:600">Exclude:</span>
@@ -472,12 +479,13 @@
             <div id="match" class="card">
                 <button id="leftName"  class="choice-card" type="button"></button>
                 <div class="vsCol">
-                    <div class="vs"></div>
                     <span class="vs-label">VS</span>
+                </div>
+                <button id="rightName" class="choice-card" type="button"></button>
+                <div class="match-actions">
                     <button id="bothWinBtn" class="btn special" type="button">Both Win</button>
                     <button id="bothLoseBtn" class="btn secondary" type="button">Both Lose</button>
                 </div>
-                <button id="rightName" class="choice-card" type="button"></button>
             </div>
             <div id="championPanel" class="card panel" style="display:none">
                 <h3 class="section-title">Champion</h3>
