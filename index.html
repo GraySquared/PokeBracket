@@ -526,6 +526,7 @@
                 buildDexIndexes();
                 populateRegionVersionUI();
                 updateFilterCount();
+                restoreState();
             } catch (err) {
                 console.error('Failed to load bracket data:', err);
                 if (dom.filterCount) dom.filterCount.textContent = 'Failed to load Pokémon data — please refresh and try again.';
@@ -885,9 +886,10 @@
                     dom.leftName.textContent = '';
                     dom.rightName.textContent = '';
                     showChampion(champ);
+                    saveState();
                     return;
                 }
-                
+
                 const finishedRound = currentRound;
                 const nextEntrants = winnersThisRound.slice();
                 currentRound = finishedRound+1;
@@ -899,8 +901,9 @@
                 pairIndex = 0;
             }
             renderPair();
+            saveState();
         }
-        
+
         function undoLast() {
             if (pairIndex > 0) {
                 pairIndex--;
@@ -911,6 +914,7 @@
                 }
                 renderPair();
                 renderHistory();
+                saveState();
                 return
             }
             
@@ -939,6 +943,7 @@
                 pairIndex = prevRoundMatches.length;
                 renderPair();
                 renderHistory();
+                saveState();
                 return;
             }
         }
@@ -960,8 +965,9 @@
             pairs = kept.concat(newRemainingPairs);
             roundPairs.set(currentRound, pairs.slice());
             renderPair();
+            saveState();
         }
-        
+
         async function startBracket() {
             currentRound = 1;
             winnersThisRound = [];
@@ -982,8 +988,99 @@
             roundPairs.set(currentRound, pairs.slice());
             pairIndex = 0;
             renderPair();
+            renderHistory();
+            saveState();
         }
-        
+
+        // ---- Save / resume (localStorage) ----
+        // Pokémon objects are stored as compact keys and re-resolved against pokemon.json
+        // on load. Storage is per-browser, per-origin; failures (private mode, quota) are
+        // swallowed so saving never breaks the bracket itself.
+        const SAVE_KEY = 'pokebracket.save.v1';
+        const keyOf = (p) => String(p.variety_id ?? p.variety ?? p.species);
+        const keysOf = (v) => Array.isArray(v) ? v.map(keyOf) : keyOf(v);
+        let applyFiltersToUI = () => {};   // assigned in init once the filter controls are in scope
+
+        function saveState() {
+            try {
+                if (!pairs.length) return;
+                const state = {
+                    v: 1,
+                    round: currentRound,
+                    pairIndex,
+                    pairs: pairs.map(([a, b]) => [keyOf(a), b ? keyOf(b) : null]),
+                    roundPairs: Object.fromEntries(
+                        Array.from(roundPairs, ([r, ps]) => [r, ps.map(([a, b]) => [keyOf(a), b ? keyOf(b) : null])])
+                    ),
+                    winners: winnersThisRound.map(keyOf),
+                    history: matchHistory.map(m => ({ ...m, winner_obj: keysOf(m.winner_obj) })),
+                    autoShuffle: autoShuffleRounds,
+                    filters: currentFilters
+                };
+                localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+            } catch (err) {
+                console.warn('Could not save bracket progress:', err);
+            }
+        }
+
+        function clearSavedState() {
+            try { localStorage.removeItem(SAVE_KEY); } catch (err) { /* ignore */ }
+        }
+
+        // Returns true if a saved bracket was found and restored.
+        function restoreState() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (!raw) return false;
+                const s = JSON.parse(raw);
+                if (!s || s.v !== 1) return false;
+
+                const byKey = new Map(pokemonData.map(p => [keyOf(p), p]));
+                const get = (k) => {
+                    const p = byKey.get(k);
+                    if (!p) throw new Error('Saved Pokémon no longer exists: ' + k);
+                    return p;
+                };
+                const toPairs = (ps) => ps.map(([a, b]) => [get(a), b ? get(b) : null]);
+
+                // Resolve everything before touching live state so a bad save can't half-apply.
+                const newPairs = toPairs(s.pairs);
+                const newRoundPairs = new Map(Object.entries(s.roundPairs).map(([r, ps]) => [Number(r), toPairs(ps)]));
+                const newWinners = s.winners.map(get);
+                const newHistory = s.history.map(m => ({
+                    ...m,
+                    winner_obj: Array.isArray(m.winner_obj) ? m.winner_obj.map(get) : get(m.winner_obj)
+                }));
+
+                autoShuffleRounds = !!s.autoShuffle;
+                const chk = document.getElementById('autoShuffleChk');
+                if (chk) chk.checked = autoShuffleRounds;
+                applyFiltersToUI(s.filters);
+
+                currentRound = s.round;
+                pairIndex = s.pairIndex;
+                pairs = newPairs;
+                roundPairs = newRoundPairs;
+                winnersThisRound = newWinners;
+                matchHistory = newHistory;
+                workingList = pairs.flatMap(([a, b]) => b ? [a, b] : [a]);
+
+                clearChampion();
+                renderHistory();
+                renderPair();
+                if (pairIndex >= pairs.length && winnersThisRound.length === 1) {
+                    const champ = winnersThisRound[0];
+                    dom.pairInfo.textContent = `Tournament complete — ${labelOf(champ)} wins!`;
+                    showChampion(champ);
+                }
+                return true;
+            } catch (err) {
+                console.warn('Discarding unreadable saved bracket:', err);
+                clearSavedState();
+                return false;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // Populate the shared dom{} cache once, then wire up the buttons that
             // use it (previously each got its own getElementById call at parse time).
@@ -1058,7 +1155,25 @@
             }
             
             readFiltersFromUI();
-            
+
+            // Used by restoreState() to push saved filter choices back into the controls.
+            applyFiltersToUI = (f) => {
+                if (!f) return;
+                if (genSelect) genSelect.value = f.gen || '';
+                if (dom.regionSelect) dom.regionSelect.value = (f.regions && f.regions[0]) || '';
+                const set = (el, v) => { if (el) el.checked = !!v; };
+                set(typesModeAll, f.typesRequireAll);
+                set(exMega, f.excludeMega); set(exGmax, f.excludeGmax);
+                set(exCostume, f.excludeCostume); set(exAltForms, f.excludeAltForms);
+                set(onlyMega, f.onlyMega); set(onlyGmax, f.onlyGmax);
+                set(onlyLegendary, f.onlyLegendary); set(onlyMythical, f.onlyMythical);
+                set(onlyStarters, f.onlyStarters);
+                if (starterStage) starterStage.value = f.starterStage || 'all';
+                const wanted = new Set(f.types || []);
+                document.querySelectorAll('input[name="typeOpt"]').forEach(el => { el.checked = wanted.has(el.value); });
+                readFiltersFromUI();
+            };
+
             // Types dropdown toggle logic
             const typeDropdownBtn = $('typeDropdownBtn');
             const typeDropdown    = $('typeDropdown');
@@ -1079,6 +1194,7 @@
             if (autoShuffleChk) {
                 autoShuffleChk.addEventListener('change', () => {
                     autoShuffleRounds = !!autoShuffleChk.checked;
+                    saveState();
                 });
             }
 
